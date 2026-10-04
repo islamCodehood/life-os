@@ -15,6 +15,20 @@ export class HmacOpaqueTokenService implements OpaqueTokenService {
     };
   }
 
+  issueDeterministic(purpose: OpaqueTokenPurpose, seed: string) {
+    const rawToken = createHmac('sha256', this.secret)
+      .update('issued-token')
+      .update('\0')
+      .update(purpose)
+      .update('\0')
+      .update(seed)
+      .digest('base64url');
+    return {
+      rawToken,
+      tokenHash: this.hash(rawToken, purpose),
+    };
+  }
+
   hash(rawToken: string, purpose: OpaqueTokenPurpose): string {
     return createHmac('sha256', this.secret)
       .update(purpose)
