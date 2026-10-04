@@ -21,7 +21,7 @@ class FakeGuardianAuth implements GuardianAuthGateway {
   async getCurrentGuardian() {
     return this.identity;
   }
-  async beginSignIn(_input: SignInInput) {}
+  async beginSignIn(input: SignInInput) { void input; }
   async signOut() {}
   async refreshSession() {}
 }
