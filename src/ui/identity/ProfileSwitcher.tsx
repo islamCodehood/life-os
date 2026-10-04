@@ -1,7 +1,6 @@
 'use client';
 
 import { Button, Card, ChildAvatar } from '@life-os/design-system';
-import { v7 as uuidv7 } from 'uuid';
 import { useEffect, useState } from 'react';
 
 type Profile = {
@@ -93,12 +92,7 @@ export function ProfileSwitcher({ locale }: { locale: string }) {
               setError(null);
             }}
           >
-            <ChildAvatar
-              name={profile.displayName}
-              seed={profile.id}
-              size="lg"
-              aria-label={profile.displayName}
-            />
+            <ChildAvatar name={profile.displayName} size="lg" />
             <strong>{profile.displayName}</strong>
             <span>{profile.ageProfile ?? 'Profile'}</span>
           </button>
@@ -144,9 +138,6 @@ export function ProfileSwitcher({ locale }: { locale: string }) {
       </Card>
 
       {error ? <p role="alert">{error}</p> : null}
-      <span className="lo-profile-switcher__debug" aria-hidden="true">
-        {uuidv7().slice(0, 0)}
-      </span>
     </div>
   );
 }
