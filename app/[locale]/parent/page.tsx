@@ -55,7 +55,7 @@ export default async function ParentShellPage({
       </Card>
 
       <ParentIdentitySetup
-        children={children.map((child) => ({ id: child.id, displayName: child.displayName }))}
+        childProfiles={children.map((child) => ({ id: child.id, displayName: child.displayName }))}
         messages={messages}
       />
     </main>
