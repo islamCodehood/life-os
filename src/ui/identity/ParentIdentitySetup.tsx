@@ -23,17 +23,17 @@ async function command(type: string, payload: unknown) {
 }
 
 export function ParentIdentitySetup({
-  children,
+  childProfiles,
   messages,
 }: {
-  children: ChildOption[];
+  childProfiles: ChildOption[];
   messages: IdentityMessages;
 }) {
   const router = useRouter();
   const [childName, setChildName] = useState('');
   const [birthDate, setBirthDate] = useState('');
   const [deviceLabel, setDeviceLabel] = useState('');
-  const [selectedChildId, setSelectedChildId] = useState(children[0]?.id ?? '');
+  const [selectedChildId, setSelectedChildId] = useState(childProfiles[0]?.id ?? '');
   const [pin, setPin] = useState('');
   const [status, setStatus] = useState<string | null>(null);
   const canSetPin = useMemo(() => Boolean(selectedChildId && pin), [selectedChildId, pin]);
@@ -111,7 +111,7 @@ export function ParentIdentitySetup({
             onChange={(event) => setSelectedChildId(event.target.value)}
           >
             <option value="">{messages.chooseChild}</option>
-            {children.map((child) => (
+            {childProfiles.map((child) => (
               <option key={child.id} value={child.id}>
                 {child.displayName}
               </option>
