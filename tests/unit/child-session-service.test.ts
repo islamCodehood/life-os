@@ -18,6 +18,12 @@ class FakeTokens implements OpaqueTokenService {
   issue(purpose: 'device' | 'child-session') {
     return { rawToken: `raw-${purpose}`, tokenHash: `${purpose}:issued` };
   }
+  issueDeterministic(purpose: 'device' | 'child-session', seed: string) {
+    return {
+      rawToken: `deterministic-${purpose}-${seed}`,
+      tokenHash: `${purpose}:deterministic-${seed}`,
+    };
+  }
   hash(rawToken: string, purpose: 'device' | 'child-session') {
     return `${purpose}:${rawToken}`;
   }
