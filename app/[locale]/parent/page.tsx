@@ -1,7 +1,7 @@
 import { Button, Card } from '@life-os/design-system';
 import { redirect } from 'next/navigation';
-import { createIdentityRuntime } from '@/src/infrastructure/composition/identity-runtime';
 import { currentServerRequest } from '@/src/infrastructure/auth/server-request';
+import { createIdentityRuntime } from '@/src/infrastructure/composition/identity-runtime';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,7 +12,9 @@ export default async function ParentShellPage({
 }) {
   const { locale } = await params;
   const runtime = await createIdentityRuntime();
-  const actor = await runtime.actorResolver.resolve(await currentServerRequest(`/${locale}/parent`));
+  const actor = await runtime.actorResolver.resolve(
+    await currentServerRequest(`/${locale}/parent`),
+  );
 
   if (!actor || actor.kind !== 'GUARDIAN') {
     redirect(`/${locale}?parent=locked`);
@@ -34,10 +36,14 @@ export default async function ParentShellPage({
 
       <Card className="lo-app-foundation__card" variant="soft">
         <strong>Children</strong>
-        <p>{children.length === 0 ? 'No child profiles yet.' : children.map((child) => child.displayName).join(' · ')}</p>
-        <Button asChild>
-          <a href={`/${locale}`}>Switch profile</a>
-        </Button>
+        <p>
+          {children.length === 0
+            ? 'No child profiles yet.'
+            : children.map((child) => child.displayName).join(' · ')}
+        </p>
+        <form action={`/${locale}`}>
+          <Button type="submit">Switch profile</Button>
+        </form>
       </Card>
     </main>
   );
