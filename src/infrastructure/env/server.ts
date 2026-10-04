@@ -1,6 +1,6 @@
 import { serverEnvSchema, type ServerEnv } from './schema';
 
-export function parseServerEnv(source: NodeJS.ProcessEnv): ServerEnv {
+export function parseServerEnv(source: Record<string, string | undefined>): ServerEnv {
   return serverEnvSchema.parse(source);
 }
 
