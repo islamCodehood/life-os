@@ -10,18 +10,30 @@ permissions:
 
 jobs:
   lockfile:
-    if: ${{ hashFiles('pnpm-lock.yaml') == '' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           ref: feat/e0-engineering-foundation
+      - id: lock
+        name: Check lockfile
+        shell: bash
+        run: |
+          if [ -f pnpm-lock.yaml ]; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
       - uses: actions/setup-node@v4
+        if: steps.lock.outputs.exists == 'false'
         with:
           node-version: 24.21.0
-      - run: corepack enable
-      - run: pnpm install --lockfile-only --no-frozen-lockfile --ignore-scripts
+      - if: steps.lock.outputs.exists == 'false'
+        run: corepack enable
+      - if: steps.lock.outputs.exists == 'false'
+        run: pnpm install --lockfile-only --no-frozen-lockfile --ignore-scripts
       - name: Commit lockfile
+        if: steps.lock.outputs.exists == 'false'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
