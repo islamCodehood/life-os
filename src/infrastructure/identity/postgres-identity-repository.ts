@@ -84,6 +84,16 @@ export class PostgresIdentityRepository implements IdentityRepository {
     }));
   }
 
+  async getFamily(familyId: FamilyId) {
+    const [row] = await this.db
+      .select()
+      .from(schema.families)
+      .where(eq(schema.families.id, familyId))
+      .limit(1);
+
+    return row ? familyRow(row) : null;
+  }
+
   async createFamilyWithOwner(input: {
     identity: GuardianIdentity;
     guardianId: GuardianId;

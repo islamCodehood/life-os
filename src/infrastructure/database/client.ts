@@ -14,3 +14,10 @@ export function createDatabase() {
     db: drizzle(pool, { schema }),
   };
 }
+
+let singleton: ReturnType<typeof createDatabase> | undefined;
+
+export function getDatabase() {
+  singleton ??= createDatabase();
+  return singleton;
+}

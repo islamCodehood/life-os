@@ -1,9 +1,9 @@
+import type { ActorContext } from '@/src/application/auth/actor-context';
 import type { ActorResolver } from '@/src/application/auth/actor-resolver';
 import type { GuardianAuthGateway } from '@/src/application/auth/guardian-auth-gateway';
-import type { IdentityRepository } from '@/src/application/identity/identity-repository';
-import type { ActorContext } from '@/src/application/auth/actor-context';
-import type { DeviceId, FamilyId } from '@/src/domain/shared/id';
 import type { OpaqueTokenService } from '@/src/application/auth/opaque-token-service';
+import type { IdentityRepository } from '@/src/application/identity/identity-repository';
+import type { FamilyId } from '@/src/domain/shared/id';
 import { authCookieNames, parseCookieHeader } from './cookies';
 import { decodeParentUnlock } from './parent-unlock-codec';
 
@@ -88,7 +88,6 @@ export class ServerActorResolver implements ActorResolver {
       kind: 'GUARDIAN',
       familyId: selected.familyId as FamilyId,
       guardianId: selected.guardianId,
-      ...(undefined as DeviceId | undefined),
     };
   }
 }

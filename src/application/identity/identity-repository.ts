@@ -26,6 +26,7 @@ export interface GuardianMembership {
 export interface IdentityRepository {
   findGuardianByProviderUserId(providerUserId: string): Promise<GuardianProfile | null>;
   listGuardianMemberships(guardianId: GuardianId): Promise<GuardianMembership[]>;
+  getFamily(familyId: FamilyId): Promise<Family | null>;
 
   createFamilyWithOwner(input: {
     identity: GuardianIdentity;
