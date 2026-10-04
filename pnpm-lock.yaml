@@ -12,8 +12,8 @@ importers:
         specifier: 5.9.1
         version: 5.9.1(react-hook-form@7.88.0(react@19.2.0))(zod@4.6.5)
       '@life-os/design-system':
-        specifier: github:islamCodehood/life-os-design-system#b5740bdbf4ac32b49c4fd00234df91f3ae702a69
-        version: https://codeload.github.com/islamCodehood/life-os-design-system/tar.gz/b5740bdbf4ac32b49c4fd00234df91f3ae702a69(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
+        specifier: github:islamCodehood/life-os-design-system#e550c94a847392c484295ae37f5feb3ad7fcea39
+        version: https://codeload.github.com/islamCodehood/life-os-design-system/tar.gz/e550c94a847392c484295ae37f5feb3ad7fcea39(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
       '@supabase/ssr':
         specifier: 0.12.7
         version: 0.12.7(@supabase/supabase-js@2.117.1)
@@ -922,8 +922,8 @@ packages:
   '@jridgewell/trace-mapping@0.3.31':
     resolution: {integrity: sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==}
 
-  '@life-os/design-system@https://codeload.github.com/islamCodehood/life-os-design-system/tar.gz/b5740bdbf4ac32b49c4fd00234df91f3ae702a69':
-    resolution: {tarball: https://codeload.github.com/islamCodehood/life-os-design-system/tar.gz/b5740bdbf4ac32b49c4fd00234df91f3ae702a69}
+  '@life-os/design-system@https://codeload.github.com/islamCodehood/life-os-design-system/tar.gz/e550c94a847392c484295ae37f5feb3ad7fcea39':
+    resolution: {tarball: https://codeload.github.com/islamCodehood/life-os-design-system/tar.gz/e550c94a847392c484295ae37f5feb3ad7fcea39}
     version: 0.3.3
     engines: {node: '>=20.19.0'}
     peerDependencies:
@@ -3525,7 +3525,7 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.6.0
 
-  '@life-os/design-system@https://codeload.github.com/islamCodehood/life-os-design-system/tar.gz/b5740bdbf4ac32b49c4fd00234df91f3ae702a69(react-dom@19.2.0(react@19.2.0))(react@19.2.0)':
+  '@life-os/design-system@https://codeload.github.com/islamCodehood/life-os-design-system/tar.gz/e550c94a847392c484295ae37f5feb3ad7fcea39(react-dom@19.2.0(react@19.2.0))(react@19.2.0)':
     dependencies:
       lucide-react: 0.468.0(react@19.2.0)
       react: 19.2.0
@@ -4357,7 +4357,7 @@ snapshots:
       eslint: 9.39.5
       eslint-import-resolver-node: 0.3.10
       eslint-import-resolver-typescript: 3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.71.0(eslint@9.39.5)(typescript@5.9.3))(eslint@9.39.5))(eslint@9.39.5)
-      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.71.0(eslint@9.39.5)(typescript@5.9.3))(eslint-import-resolver-typescript@3.10.1)(eslint@9.39.5)
+      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.71.0(eslint@9.39.5)(typescript@5.9.3))(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.71.0(eslint@9.39.5)(typescript@5.9.3))(eslint@9.39.5))(eslint@9.39.5))(eslint@9.39.5)
       eslint-plugin-jsx-a11y: 6.10.2(eslint@9.39.5)
       eslint-plugin-react: 7.37.5(eslint@9.39.5)
       eslint-plugin-react-hooks: 7.1.1(eslint@9.39.5)
@@ -4390,7 +4390,7 @@ snapshots:
       tinyglobby: 0.2.17
       unrs-resolver: 1.12.2
     optionalDependencies:
-      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.71.0(eslint@9.39.5)(typescript@5.9.3))(eslint-import-resolver-typescript@3.10.1)(eslint@9.39.5)
+      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.71.0(eslint@9.39.5)(typescript@5.9.3))(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.71.0(eslint@9.39.5)(typescript@5.9.3))(eslint@9.39.5))(eslint@9.39.5))(eslint@9.39.5)
     transitivePeerDependencies:
       - supports-color
 
@@ -4405,7 +4405,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.71.0(eslint@9.39.5)(typescript@5.9.3))(eslint-import-resolver-typescript@3.10.1)(eslint@9.39.5):
+  eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.71.0(eslint@9.39.5)(typescript@5.9.3))(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.71.0(eslint@9.39.5)(typescript@5.9.3))(eslint@9.39.5))(eslint@9.39.5))(eslint@9.39.5):
     dependencies:
       '@rtsao/scc': 1.1.0
       array-includes: 3.2.0
