@@ -29,7 +29,7 @@
   },
   "dependencies": {
     "@hookform/resolvers": "5.9.1",
-    "@life-os/design-system": "github:islamCodehood/life-os-design-system#b5740bdbf4ac32b49c4fd00234df91f3ae702a69",
+    "@life-os/design-system": "github:islamCodehood/life-os-design-system#e550c94a847392c484295ae37f5feb3ad7fcea39",
     "@supabase/ssr": "0.12.7",
     "@supabase/supabase-js": "2.117.1",
     "@tanstack/react-query": "5.104.0",
