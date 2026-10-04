@@ -33,7 +33,7 @@ export async function GET(request: Request) {
       }
     }
 
-    if (!actor) {
+    if (!actor || actor.kind === 'SYSTEM') {
       return NextResponse.json(
         { actor: null, deviceId, profiles: switcherProfiles },
         { headers: { 'x-request-id': requestId, 'cache-control': 'no-store' } },
@@ -49,14 +49,18 @@ export async function GET(request: Request) {
     }
 
     const asOfDate = currentDateInTimezone(family.timezone);
-    const profiles =
-      actor.kind === 'GUARDIAN'
-        ? await runtime.repository.listChildSummaries(actor.familyId, asOfDate)
-        : switcherProfiles.length > 0
+    let profiles: typeof switcherProfiles;
+
+    if (actor.kind === 'GUARDIAN') {
+      profiles = await runtime.repository.listChildSummaries(actor.familyId, asOfDate);
+    } else {
+      profiles =
+        switcherProfiles.length > 0
           ? switcherProfiles
           : (await runtime.repository.listChildSummaries(actor.familyId, asOfDate)).filter(
               (profile) => profile.id === actor.childId,
             );
+    }
 
     return NextResponse.json(
       {
