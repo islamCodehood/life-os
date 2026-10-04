@@ -29,8 +29,12 @@ export async function POST(request: Request) {
         const family = await runtime.repository.getFamily(actor.familyId);
         if (!family) throw new AppError('RESOURCE_NOT_FOUND', 'Family was not found.');
         data = await runtime.familyIdentity.createChild(actor, {
-          ...command.payload,
+          displayName: command.payload.displayName,
+          birthDate: command.payload.birthDate,
           asOfDate: currentDateInTimezone(family.timezone),
+          ...(command.payload.avatarKey === undefined
+            ? {}
+            : { avatarKey: command.payload.avatarKey }),
         });
         break;
       }
