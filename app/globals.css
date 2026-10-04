@@ -8,7 +8,7 @@ body {
   margin: 0;
   background: var(--lo-bg-page);
   color: var(--lo-text-primary);
-  font-family: Inter, 'Noto Sans Arabic', system-ui, sans-serif;
+  font-family: Inter, "Noto Sans Arabic", system-ui, sans-serif;
 }
 
 * {
@@ -25,7 +25,8 @@ body {
   padding-block: var(--lo-space-8);
 }
 
-.lo-app-foundation__hero {
+.lo-app-foundation__hero,
+.lo-identity-form {
   display: grid;
   gap: var(--lo-space-3);
 }
@@ -64,7 +65,66 @@ body {
   font-size: var(--lo-type-body-sm);
 }
 
+.lo-profile-switcher {
+  display: grid;
+  gap: var(--lo-space-4);
+}
+
+.lo-profile-switcher__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: var(--lo-space-3);
+}
+
+.lo-profile-switcher__profile {
+  min-block-size: 160px;
+  border: 1px solid var(--lo-border-default);
+  border-radius: var(--lo-radius-4);
+  background: var(--lo-bg-surface);
+  color: var(--lo-text-primary);
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: var(--lo-space-2);
+  padding: var(--lo-space-4);
+  cursor: pointer;
+}
+
+.lo-profile-switcher__profile:focus-visible,
+.lo-identity-form input:focus-visible,
+.lo-profile-switcher__panel input:focus-visible {
+  outline: 3px solid var(--lo-focus-ring);
+  outline-offset: 2px;
+}
+
+.lo-profile-switcher__profile span {
+  color: var(--lo-text-secondary);
+  font-size: var(--lo-type-body-sm);
+}
+
+.lo-profile-switcher__panel,
+.lo-identity-form label,
+.lo-profile-switcher__panel label {
+  display: grid;
+  gap: var(--lo-space-2);
+}
+
+.lo-identity-form input,
+.lo-profile-switcher__panel input {
+  inline-size: 100%;
+  min-block-size: 44px;
+  border: 1px solid var(--lo-border-default);
+  border-radius: var(--lo-radius-2);
+  background: var(--lo-bg-surface);
+  color: var(--lo-text-primary);
+  padding-inline: var(--lo-space-3);
+}
+
+.lo-profile-switcher__debug {
+  display: none;
+}
+
 [dir='rtl'] .lo-app-foundation {
-  font-family: 'Noto Sans Arabic', Inter, system-ui, sans-serif;
+  font-family: "Noto Sans Arabic", Inter, system-ui, sans-serif;
   line-height: 1.6;
 }
