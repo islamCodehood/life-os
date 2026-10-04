@@ -129,7 +129,7 @@ export class FamilyIdentityService {
     await this.repository.updateExperiencePreference(guardian.familyId, childId, preference);
   }
 
-  async registerDevice(actor: ActorContext, label: string) {
+  async registerDevice(actor: ActorContext, label: string, tokenSeed: string) {
     const guardian = requireGuardian(actor);
     const trimmed = label.trim();
     if (!trimmed) {
@@ -137,7 +137,7 @@ export class FamilyIdentityService {
     }
 
     const deviceId = newId<'DeviceId'>() as DeviceId;
-    const { rawToken, tokenHash } = this.tokens.issue('device');
+    const { rawToken, tokenHash } = this.tokens.issueDeterministic('device', tokenSeed);
     const device = await this.repository.registerDevice({
       familyId: guardian.familyId,
       deviceId,
