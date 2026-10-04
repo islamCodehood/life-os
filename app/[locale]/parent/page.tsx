@@ -1,5 +1,6 @@
 import { Button, Card } from '@life-os/design-system';
 import { redirect } from 'next/navigation';
+import { currentDateInTimezone } from '@/src/application/identity/current-date';
 import { currentServerRequest } from '@/src/infrastructure/auth/server-request';
 import { createIdentityRuntime } from '@/src/infrastructure/composition/identity-runtime';
 
@@ -21,10 +22,12 @@ export default async function ParentShellPage({
   }
 
   const family = await runtime.repository.getFamily(actor.familyId);
-  const children = await runtime.repository.listChildSummaries(
-    actor.familyId,
-    new Date().toISOString().slice(0, 10),
-  );
+  const children = family
+    ? await runtime.repository.listChildSummaries(
+        actor.familyId,
+        currentDateInTimezone(family.timezone),
+      )
+    : [];
 
   return (
     <main className="lo-app-foundation">
