@@ -128,3 +128,23 @@ body {
   font-family: "Noto Sans Arabic", Inter, system-ui, sans-serif;
   line-height: 1.6;
 }
+
+.lo-identity-admin {
+  display: grid;
+  gap: var(--lo-space-4);
+}
+
+.lo-profile-switcher__panel select {
+  inline-size: 100%;
+  min-block-size: 44px;
+  border: 1px solid var(--lo-border-default);
+  border-radius: var(--lo-radius-2);
+  background: var(--lo-bg-surface);
+  color: var(--lo-text-primary);
+  padding-inline: var(--lo-space-3);
+}
+
+.lo-profile-switcher__panel select:focus-visible {
+  outline: 3px solid var(--lo-focus-ring);
+  outline-offset: 2px;
+}
