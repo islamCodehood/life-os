@@ -50,7 +50,10 @@ export interface ApiErrorBody {
   };
 }
 
-export function toApiError(error: unknown, requestId: string): {
+export function toApiError(
+  error: unknown,
+  requestId: string,
+): {
   status: number;
   body: ApiErrorBody;
 } {

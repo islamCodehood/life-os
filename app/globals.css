@@ -8,7 +8,7 @@ body {
   margin: 0;
   background: var(--lo-bg-page);
   color: var(--lo-text-primary);
-  font-family: Inter, "Noto Sans Arabic", system-ui, sans-serif;
+  font-family: Inter, 'Noto Sans Arabic', system-ui, sans-serif;
 }
 
 * {
@@ -125,7 +125,7 @@ body {
 }
 
 [dir='rtl'] .lo-app-foundation {
-  font-family: "Noto Sans Arabic", Inter, system-ui, sans-serif;
+  font-family: 'Noto Sans Arabic', Inter, system-ui, sans-serif;
   line-height: 1.6;
 }
 

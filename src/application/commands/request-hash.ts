@@ -13,5 +13,7 @@ function stableValue(value: unknown): unknown {
 }
 
 export function commandRequestHash(command: unknown): string {
-  return createHash('sha256').update(JSON.stringify(stableValue(command))).digest('hex');
+  return createHash('sha256')
+    .update(JSON.stringify(stableValue(command)))
+    .digest('hex');
 }

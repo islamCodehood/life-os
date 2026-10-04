@@ -34,9 +34,8 @@ export class InMemoryIdentityRepository implements IdentityRepository {
 
   async findGuardianByProviderUserId(providerUserId: string) {
     return (
-      [...this.guardians.values()].find(
-        (guardian) => guardian.providerUserId === providerUserId,
-      ) ?? null
+      [...this.guardians.values()].find((guardian) => guardian.providerUserId === providerUserId) ??
+      null
     );
   }
 

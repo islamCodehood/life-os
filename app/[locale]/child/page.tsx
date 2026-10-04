@@ -7,18 +7,12 @@ import { createIdentityRuntime } from '@/src/infrastructure/composition/identity
 
 export const dynamic = 'force-dynamic';
 
-export default async function ChildShellPage({
-  params,
-}: {
-  params: Promise<{ locale: string }>;
-}) {
+export default async function ChildShellPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
   const messages = getIdentityMessages(locale);
   const runtime = await createIdentityRuntime();
-  const actor = await runtime.actorResolver.resolve(
-    await currentServerRequest(`/${locale}/child`),
-  );
+  const actor = await runtime.actorResolver.resolve(await currentServerRequest(`/${locale}/child`));
 
   if (!actor || actor.kind !== 'CHILD') {
     redirect(`/${locale}`);

@@ -1,8 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-  deriveAgeProfile,
-  recommendedVisualization,
-} from '@/src/domain/identity/experience';
+import { deriveAgeProfile, recommendedVisualization } from '@/src/domain/identity/experience';
 
 describe('age-adaptive experience', () => {
   it.each([

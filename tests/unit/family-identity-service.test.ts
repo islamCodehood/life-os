@@ -44,12 +44,10 @@ describe('FamilyIdentityService', () => {
       version: 1,
     });
 
-    const service = new FamilyIdentityService(
-      repository,
-      new FakePinHasher(),
-      new FakeTokens(),
-      { minLength: 4, maxLength: 8 },
-    );
+    const service = new FamilyIdentityService(repository, new FakePinHasher(), new FakeTokens(), {
+      minLength: 4,
+      maxLength: 8,
+    });
     const actor: ActorContext = { kind: 'GUARDIAN', familyId, guardianId };
 
     const result = await service.createChild(actor, {
@@ -73,12 +71,10 @@ describe('FamilyIdentityService', () => {
 
   it('never allows a child actor to administer PINs', async () => {
     const repository = new InMemoryIdentityRepository();
-    const service = new FamilyIdentityService(
-      repository,
-      new FakePinHasher(),
-      new FakeTokens(),
-      { minLength: 4, maxLength: 8 },
-    );
+    const service = new FamilyIdentityService(repository, new FakePinHasher(), new FakeTokens(), {
+      minLength: 4,
+      maxLength: 8,
+    });
 
     const childActor: ActorContext = {
       kind: 'CHILD',

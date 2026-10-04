@@ -9,11 +9,7 @@ import { ParentIdentitySetup } from '@/src/ui/identity/ParentIdentitySetup';
 
 export const dynamic = 'force-dynamic';
 
-export default async function ParentShellPage({
-  params,
-}: {
-  params: Promise<{ locale: string }>;
-}) {
+export default async function ParentShellPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
   const messages = getIdentityMessages(locale);

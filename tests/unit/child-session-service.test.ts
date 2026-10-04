@@ -68,12 +68,11 @@ function fixture() {
     version: 1,
   });
 
-  const service = new ChildSessionService(
-    repository,
-    new FakePinHasher(),
-    new FakeTokens(),
-    { childSessionTtlSeconds: 3600, maxPinAttempts: 2, pinLockoutSeconds: 60 },
-  );
+  const service = new ChildSessionService(repository, new FakePinHasher(), new FakeTokens(), {
+    childSessionTtlSeconds: 3600,
+    maxPinAttempts: 2,
+    pinLockoutSeconds: 60,
+  });
 
   return { repository, service, familyId, childId, deviceId };
 }

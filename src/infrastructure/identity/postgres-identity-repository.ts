@@ -102,43 +102,43 @@ export class PostgresIdentityRepository implements IdentityRepository {
     timezone: string;
     currency: string;
   }) {
-      const [guardian] = await this.db
-        .insert(schema.guardianProfiles)
-        .values({
-          id: input.guardianId,
-          supabaseUserId: input.identity.providerUserId,
+    const [guardian] = await this.db
+      .insert(schema.guardianProfiles)
+      .values({
+        id: input.guardianId,
+        supabaseUserId: input.identity.providerUserId,
+        displayName: input.identity.displayName,
+      })
+      .onConflictDoUpdate({
+        target: schema.guardianProfiles.supabaseUserId,
+        set: {
           displayName: input.identity.displayName,
-        })
-        .onConflictDoUpdate({
-          target: schema.guardianProfiles.supabaseUserId,
-          set: {
-            displayName: input.identity.displayName,
-            updatedAt: new Date(),
-          },
-        })
-        .returning();
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
 
-      if (!guardian) throw new Error('Failed to create guardian profile.');
+    if (!guardian) throw new Error('Failed to create guardian profile.');
 
-      const [family] = await this.db
-        .insert(schema.families)
-        .values({
-          id: input.familyId,
-          name: input.name,
-          timezone: input.timezone,
-          currency: input.currency,
-        })
-        .returning();
+    const [family] = await this.db
+      .insert(schema.families)
+      .values({
+        id: input.familyId,
+        name: input.name,
+        timezone: input.timezone,
+        currency: input.currency,
+      })
+      .returning();
 
-      if (!family) throw new Error('Failed to create family.');
+    if (!family) throw new Error('Failed to create family.');
 
-      await this.db.insert(schema.familyGuardians).values({
-        familyId: family.id,
-        guardianId: guardian.id,
-        role: 'OWNER',
-      });
+    await this.db.insert(schema.familyGuardians).values({
+      familyId: family.id,
+      guardianId: guardian.id,
+      role: 'OWNER',
+    });
 
-      return { family: familyRow(family), guardian: guardianRow(guardian) };
+    return { family: familyRow(family), guardian: guardianRow(guardian) };
   }
 
   async createChild(input: {
@@ -149,40 +149,35 @@ export class PostgresIdentityRepository implements IdentityRepository {
     avatarKey: string | null;
     experience: ExperiencePreference;
   }) {
-      const [child] = await this.db
-        .insert(schema.childProfiles)
-        .values({
-          id: input.childId,
-          familyId: input.familyId,
-          displayName: input.displayName,
-          birthDate: input.birthDate,
-          avatarKey: input.avatarKey,
-        })
-        .returning();
-
-      if (!child) throw new Error('Failed to create child profile.');
-
-      await this.db.insert(schema.experiencePreferences).values({
-        childId: child.id,
+    const [child] = await this.db
+      .insert(schema.childProfiles)
+      .values({
+        id: input.childId,
         familyId: input.familyId,
-        visualization: input.experience.visualization,
-        motion: input.experience.motion,
-        themeKey: input.experience.themeKey,
-      });
+        displayName: input.displayName,
+        birthDate: input.birthDate,
+        avatarKey: input.avatarKey,
+      })
+      .returning();
 
-      return childRow(child);
+    if (!child) throw new Error('Failed to create child profile.');
+
+    await this.db.insert(schema.experiencePreferences).values({
+      childId: child.id,
+      familyId: input.familyId,
+      visualization: input.experience.visualization,
+      motion: input.experience.motion,
+      themeKey: input.experience.themeKey,
+    });
+
+    return childRow(child);
   }
 
   async getChild(familyId: FamilyId, childId: ChildId) {
     const [row] = await this.db
       .select()
       .from(schema.childProfiles)
-      .where(
-        and(
-          eq(schema.childProfiles.familyId, familyId),
-          eq(schema.childProfiles.id, childId),
-        ),
-      )
+      .where(and(eq(schema.childProfiles.familyId, familyId), eq(schema.childProfiles.id, childId)))
       .limit(1);
 
     return row ? childRow(row) : null;
@@ -203,10 +198,7 @@ export class PostgresIdentityRepository implements IdentityRepository {
         ),
       )
       .where(
-        and(
-          eq(schema.childProfiles.familyId, familyId),
-          eq(schema.childProfiles.status, 'ACTIVE'),
-        ),
+        and(eq(schema.childProfiles.familyId, familyId), eq(schema.childProfiles.status, 'ACTIVE')),
       );
 
     return rows.map(({ child, experience }) => ({
@@ -286,35 +278,35 @@ export class PostgresIdentityRepository implements IdentityRepository {
   }
 
   async revokeDevice(familyId: FamilyId, deviceId: DeviceId, revokedAt: Date) {
-      const rows = await this.db
-        .update(schema.householdDevices)
-        .set({
-          revokedAt,
-          version: sql`${schema.householdDevices.version} + 1`,
-        })
-        .where(
-          and(
-            eq(schema.householdDevices.familyId, familyId),
-            eq(schema.householdDevices.id, deviceId),
-            isNull(schema.householdDevices.revokedAt),
-          ),
-        )
-        .returning({ id: schema.householdDevices.id });
+    const rows = await this.db
+      .update(schema.householdDevices)
+      .set({
+        revokedAt,
+        version: sql`${schema.householdDevices.version} + 1`,
+      })
+      .where(
+        and(
+          eq(schema.householdDevices.familyId, familyId),
+          eq(schema.householdDevices.id, deviceId),
+          isNull(schema.householdDevices.revokedAt),
+        ),
+      )
+      .returning({ id: schema.householdDevices.id });
 
-      if (rows.length === 0) return false;
+    if (rows.length === 0) return false;
 
-      await this.db
-        .update(schema.childSessions)
-        .set({ revokedAt })
-        .where(
-          and(
-            eq(schema.childSessions.familyId, familyId),
-            eq(schema.childSessions.deviceId, deviceId),
-            isNull(schema.childSessions.revokedAt),
-          ),
-        );
+    await this.db
+      .update(schema.childSessions)
+      .set({ revokedAt })
+      .where(
+        and(
+          eq(schema.childSessions.familyId, familyId),
+          eq(schema.childSessions.deviceId, deviceId),
+          isNull(schema.childSessions.revokedAt),
+        ),
+      );
 
-      return true;
+    return true;
   }
 
   async findTrustedDeviceByTokenHash(tokenHash: string) {

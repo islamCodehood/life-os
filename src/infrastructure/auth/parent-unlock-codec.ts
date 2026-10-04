@@ -38,7 +38,9 @@ export function decodeParentUnlock(
   }
 
   try {
-    const parsed = JSON.parse(Buffer.from(encoded, 'base64url').toString('utf8')) as ParentUnlockPayload;
+    const parsed = JSON.parse(
+      Buffer.from(encoded, 'base64url').toString('utf8'),
+    ) as ParentUnlockPayload;
     if (
       typeof parsed.familyId !== 'string' ||
       typeof parsed.guardianId !== 'string' ||

@@ -64,11 +64,7 @@ export interface IdentityRepository {
   findTrustedDeviceByTokenHash(tokenHash: string): Promise<HouseholdDevice | null>;
 
   getPinCredential(familyId: FamilyId, childId: ChildId): Promise<ChildPinCredential | null>;
-  setPinCredential(input: {
-    familyId: FamilyId;
-    childId: ChildId;
-    pinHash: string;
-  }): Promise<void>;
+  setPinCredential(input: { familyId: FamilyId; childId: ChildId; pinHash: string }): Promise<void>;
   recordPinFailure(input: {
     familyId: FamilyId;
     childId: ChildId;
