@@ -1,11 +1,19 @@
-export type ActorKind = 'guardian' | 'child' | 'system';
+import type { ChildId, DeviceId, FamilyId, GuardianId } from '@/src/domain/shared/id';
 
-export interface ActorContext {
-  actorKind: ActorKind;
-  actorId: string;
-  familyId: string;
-  childId?: string;
-}
-
-// E0 defines the trusted server-side shape only.
-// Credential resolution and authorization behavior are implemented in E1.
+export type ActorContext =
+  | {
+      kind: 'GUARDIAN';
+      familyId: FamilyId;
+      guardianId: GuardianId;
+      deviceId?: DeviceId;
+    }
+  | {
+      kind: 'CHILD';
+      familyId: FamilyId;
+      childId: ChildId;
+      deviceId: DeviceId;
+    }
+  | {
+      kind: 'SYSTEM';
+      familyId?: FamilyId;
+    };
