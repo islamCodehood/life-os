@@ -1,4 +1,4 @@
-import { Algorithm, hash, verify } from '@node-rs/argon2';
+import { hash, verify } from '@node-rs/argon2';
 import type { PinHasher } from '@/src/application/auth/pin-hasher';
 
 const policy = {
@@ -6,7 +6,6 @@ const policy = {
   timeCost: 2,
   parallelism: 1,
   outputLen: 32,
-  algorithm: Algorithm.Argon2id,
 } as const;
 
 export class Argon2PinHasher implements PinHasher {
@@ -15,6 +14,6 @@ export class Argon2PinHasher implements PinHasher {
   }
 
   verify(hashValue: string, pin: string): Promise<boolean> {
-    return verify(hashValue, pin, { algorithm: Algorithm.Argon2id });
+    return verify(hashValue, pin);
   }
 }
