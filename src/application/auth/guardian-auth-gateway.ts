@@ -9,6 +9,13 @@ export interface SignInInput {
   password: string;
 }
 
+export class GuardianAuthenticationError extends Error {
+  constructor(message = 'Guardian authentication failed.') {
+    super(message);
+    this.name = 'GuardianAuthenticationError';
+  }
+}
+
 export interface GuardianAuthGateway {
   getCurrentGuardian(): Promise<GuardianIdentity | null>;
   beginSignIn(input: SignInInput): Promise<void>;

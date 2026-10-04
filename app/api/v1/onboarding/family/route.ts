@@ -38,6 +38,11 @@ export async function POST(request: Request) {
       commandId: command.commandId,
       command,
       actor: bootstrapActor,
+      recordActor: {
+        actorKind: 'GUARDIAN_BOOTSTRAP',
+        actorId: identity.providerUserId,
+        familyId: null,
+      },
       execute: async (db) => {
         const repository = new PostgresIdentityRepository(db);
         const familyIdentity = new FamilyIdentityService(

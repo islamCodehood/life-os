@@ -1,6 +1,7 @@
 import {
   char,
   date,
+  foreignKey,
   index,
   integer,
   primaryKey,
@@ -78,9 +79,7 @@ export const childProfiles = lifeOsSchema.table(
 export const experiencePreferences = lifeOsSchema.table(
   'experience_preferences',
   {
-    childId: uuid('child_id')
-      .primaryKey()
-      .references(() => childProfiles.id, { onDelete: 'cascade' }),
+    childId: uuid('child_id').primaryKey(),
     familyId: uuid('family_id')
       .notNull()
       .references(() => families.id, { onDelete: 'cascade' }),
@@ -90,7 +89,14 @@ export const experiencePreferences = lifeOsSchema.table(
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
     version: integer('version').notNull().default(1),
   },
-  (table) => [index('experience_preferences_family_idx').on(table.familyId)],
+  (table) => [
+    index('experience_preferences_family_idx').on(table.familyId),
+    foreignKey({
+      columns: [table.childId, table.familyId],
+      foreignColumns: [childProfiles.id, childProfiles.familyId],
+      name: 'experience_child_family_fk',
+    }).onDelete('cascade'),
+  ],
 );
 
 export const householdDevices = lifeOsSchema.table(
@@ -109,6 +115,7 @@ export const householdDevices = lifeOsSchema.table(
   },
   (table) => [
     uniqueIndex('household_devices_token_hash_uidx').on(table.tokenHash),
+    uniqueIndex('household_devices_family_pair_uidx').on(table.id, table.familyId),
     index('household_devices_family_idx').on(table.familyId),
   ],
 );
@@ -116,9 +123,7 @@ export const householdDevices = lifeOsSchema.table(
 export const childPinCredentials = lifeOsSchema.table(
   'child_pin_credentials',
   {
-    childId: uuid('child_id')
-      .primaryKey()
-      .references(() => childProfiles.id, { onDelete: 'cascade' }),
+    childId: uuid('child_id').primaryKey(),
     familyId: uuid('family_id')
       .notNull()
       .references(() => families.id, { onDelete: 'cascade' }),
@@ -128,7 +133,14 @@ export const childPinCredentials = lifeOsSchema.table(
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
     version: integer('version').notNull().default(1),
   },
-  (table) => [index('child_pin_credentials_family_idx').on(table.familyId)],
+  (table) => [
+    index('child_pin_credentials_family_idx').on(table.familyId),
+    foreignKey({
+      columns: [table.childId, table.familyId],
+      foreignColumns: [childProfiles.id, childProfiles.familyId],
+      name: 'pin_child_family_fk',
+    }).onDelete('cascade'),
+  ],
 );
 
 export const childSessions = lifeOsSchema.table(
@@ -138,12 +150,8 @@ export const childSessions = lifeOsSchema.table(
     familyId: uuid('family_id')
       .notNull()
       .references(() => families.id, { onDelete: 'cascade' }),
-    childId: uuid('child_id')
-      .notNull()
-      .references(() => childProfiles.id, { onDelete: 'cascade' }),
-    deviceId: uuid('device_id')
-      .notNull()
-      .references(() => householdDevices.id, { onDelete: 'cascade' }),
+    childId: uuid('child_id').notNull(),
+    deviceId: uuid('device_id').notNull(),
     tokenHash: char('token_hash', { length: 64 }).notNull(),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     lastSeenAt: timestamp('last_seen_at', { withTimezone: true }),
@@ -154,5 +162,15 @@ export const childSessions = lifeOsSchema.table(
     uniqueIndex('child_sessions_token_hash_uidx').on(table.tokenHash),
     index('child_sessions_child_idx').on(table.familyId, table.childId),
     index('child_sessions_device_idx').on(table.deviceId),
+    foreignKey({
+      columns: [table.childId, table.familyId],
+      foreignColumns: [childProfiles.id, childProfiles.familyId],
+      name: 'session_child_family_fk',
+    }).onDelete('cascade'),
+    foreignKey({
+      columns: [table.deviceId, table.familyId],
+      foreignColumns: [householdDevices.id, householdDevices.familyId],
+      name: 'session_device_family_fk',
+    }).onDelete('cascade'),
   ],
 );

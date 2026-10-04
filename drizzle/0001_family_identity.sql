@@ -58,7 +58,11 @@ CREATE TABLE IF NOT EXISTS "life_os"."experience_preferences" (
   CONSTRAINT "experience_visualization_check"
     CHECK ("visualization" IN ('IMMERSIVE', 'BALANCED', 'FOCUSED')),
   CONSTRAINT "experience_motion_check"
-    CHECK ("motion" IN ('FULL', 'REDUCED', 'OFF'))
+    CHECK ("motion" IN ('FULL', 'REDUCED', 'OFF')),
+  CONSTRAINT "experience_child_family_fk"
+    FOREIGN KEY ("child_id", "family_id")
+    REFERENCES "life_os"."child_profiles"("id", "family_id")
+    ON DELETE CASCADE
 );
 CREATE INDEX IF NOT EXISTS "experience_preferences_family_idx"
   ON "life_os"."experience_preferences" ("family_id");

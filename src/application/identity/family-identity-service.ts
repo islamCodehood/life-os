@@ -27,8 +27,16 @@ function requireGuardian(actor: ActorContext): Extract<ActorContext, { kind: 'GU
   if (actor.kind !== 'GUARDIAN') {
     throw new IdentityDomainError('FORBIDDEN', 'Guardian permission is required.');
   }
-
   return actor;
+}
+
+function isIanaTimezone(value: string): boolean {
+  try {
+    new Intl.DateTimeFormat('en', { timeZone: value }).format(new Date(0));
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 export interface PinPolicy {
@@ -52,7 +60,7 @@ export class FamilyIdentityService {
     const timezone = input.timezone.trim();
     const currency = input.currency.trim().toUpperCase();
 
-    if (!name || !timezone || !/^[A-Z]{3}$/.test(currency)) {
+    if (!name || !isIanaTimezone(timezone) || !/^[A-Z]{3}$/.test(currency)) {
       throw new IdentityDomainError('VALIDATION_FAILED', 'Family details are invalid.');
     }
 
@@ -115,18 +123,15 @@ export class FamilyIdentityService {
   ) {
     const guardian = requireGuardian(actor);
     const child = await this.repository.getChild(guardian.familyId, childId);
-
     if (!child) {
       throw new IdentityDomainError('RESOURCE_NOT_FOUND', 'Child profile was not found.');
     }
-
     await this.repository.updateExperiencePreference(guardian.familyId, childId, preference);
   }
 
   async registerDevice(actor: ActorContext, label: string) {
     const guardian = requireGuardian(actor);
     const trimmed = label.trim();
-
     if (!trimmed) {
       throw new IdentityDomainError('VALIDATION_FAILED', 'Device label is required.');
     }
@@ -139,14 +144,12 @@ export class FamilyIdentityService {
       label: trimmed,
       tokenHash,
     });
-
     return { device, rawToken };
   }
 
   async setChildPin(actor: ActorContext, childId: ChildId, pin: string) {
     const guardian = requireGuardian(actor);
     const child = await this.repository.getChild(guardian.familyId, childId);
-
     if (!child) {
       throw new IdentityDomainError('RESOURCE_NOT_FOUND', 'Child profile was not found.');
     }
@@ -160,11 +163,7 @@ export class FamilyIdentityService {
     }
 
     const pinHash = await this.pinHasher.hash(pin);
-    await this.repository.setPinCredential({
-      familyId: guardian.familyId,
-      childId,
-      pinHash,
-    });
+    await this.repository.setPinCredential({ familyId: guardian.familyId, childId, pinHash });
   }
 
   async resetChildPin(actor: ActorContext, childId: ChildId, pin: string, now = new Date()) {
@@ -176,7 +175,6 @@ export class FamilyIdentityService {
   async revokeDevice(actor: ActorContext, deviceId: DeviceId, now = new Date()) {
     const guardian = requireGuardian(actor);
     const revoked = await this.repository.revokeDevice(guardian.familyId, deviceId, now);
-
     if (!revoked) {
       throw new IdentityDomainError('RESOURCE_NOT_FOUND', 'Household device was not found.');
     }
