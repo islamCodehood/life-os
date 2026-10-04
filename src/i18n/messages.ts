@@ -18,8 +18,7 @@ const messages = {
     description:
       'تثبت هذه الصفحة أن التطبيق والاتجاه العربي ومزودي الحالة ونظام التصميم المجمد يعملون معًا قبل بدء خصائص المنتج.',
     designSystemTitle: 'اختبار نظام التصميم',
-    designSystemBody:
-      'هذه البطاقة وهذا الزر مستوردان من حزمة @life-os/design-system المثبتة.',
+    designSystemBody: 'هذه البطاقة وهذا الزر مستوردان من حزمة @life-os/design-system المثبتة.',
     smokeAction: 'الأساس جاهز',
     epicNote: 'لا توجد قواعد سلوكية خاصة بالأطفال ضمن المرحلة صفر.',
   },

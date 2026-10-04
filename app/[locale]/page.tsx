@@ -2,11 +2,7 @@ import { Button, Card } from '@life-os/design-system';
 import { notFound } from 'next/navigation';
 import { getMessages, isLocale } from '@/src/i18n/messages';
 
-export default async function FoundationPage({
-  params,
-}: {
-  params: Promise<{ locale: string }>;
-}) {
+export default async function FoundationPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
 
   if (!isLocale(locale)) {

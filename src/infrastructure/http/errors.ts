@@ -1,10 +1,5 @@
 export type ApiErrorCode =
-  | 'VALIDATION_ERROR'
-  | 'UNAUTHORIZED'
-  | 'FORBIDDEN'
-  | 'NOT_FOUND'
-  | 'CONFLICT'
-  | 'INTERNAL_ERROR';
+  'VALIDATION_ERROR' | 'UNAUTHORIZED' | 'FORBIDDEN' | 'NOT_FOUND' | 'CONFLICT' | 'INTERNAL_ERROR';
 
 const statusByCode: Record<ApiErrorCode, number> = {
   VALIDATION_ERROR: 400,
@@ -36,7 +31,10 @@ export interface ApiErrorBody {
   };
 }
 
-export function toApiError(error: unknown, requestId: string): {
+export function toApiError(
+  error: unknown,
+  requestId: string,
+): {
   status: number;
   body: ApiErrorBody;
 } {
