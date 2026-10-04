@@ -12,35 +12,69 @@ permissions:
 
 jobs:
   validate:
-    if: ${{ hashFiles('pnpm-lock.yaml') != '' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - id: lock
+        name: Check lockfile
+        shell: bash
+        run: |
+          if [ -f pnpm-lock.yaml ]; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+            echo "Lockfile bootstrap is still pending; validation will run on the next push."
+          fi
       - uses: actions/setup-node@v4
+        if: steps.lock.outputs.exists == 'true'
         with:
           node-version: 24.21.0
-      - run: corepack enable
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm typecheck
-      - run: pnpm lint
-      - run: pnpm format:check
-      - run: pnpm test:domain
-      - run: pnpm test:unit
-      - run: pnpm test:integration
-      - run: pnpm build
-      - run: pnpm check:browser-bundle
+      - if: steps.lock.outputs.exists == 'true'
+        run: corepack enable
+      - if: steps.lock.outputs.exists == 'true'
+        run: pnpm install --frozen-lockfile
+      - if: steps.lock.outputs.exists == 'true'
+        run: pnpm typecheck
+      - if: steps.lock.outputs.exists == 'true'
+        run: pnpm lint
+      - if: steps.lock.outputs.exists == 'true'
+        run: pnpm format:check
+      - if: steps.lock.outputs.exists == 'true'
+        run: pnpm test:domain
+      - if: steps.lock.outputs.exists == 'true'
+        run: pnpm test:unit
+      - if: steps.lock.outputs.exists == 'true'
+        run: pnpm test:integration
+      - if: steps.lock.outputs.exists == 'true'
+        run: pnpm build
+      - if: steps.lock.outputs.exists == 'true'
+        run: pnpm check:browser-bundle
 
   smoke:
-    if: ${{ hashFiles('pnpm-lock.yaml') != '' }}
     needs: validate
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - id: lock
+        name: Check lockfile
+        shell: bash
+        run: |
+          if [ -f pnpm-lock.yaml ]; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
       - uses: actions/setup-node@v4
+        if: steps.lock.outputs.exists == 'true'
         with:
           node-version: 24.21.0
-      - run: corepack enable
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm exec playwright install --with-deps chromium
-      - run: pnpm build
-      - run: pnpm test:e2e:smoke
+      - if: steps.lock.outputs.exists == 'true'
+        run: corepack enable
+      - if: steps.lock.outputs.exists == 'true'
+        run: pnpm install --frozen-lockfile
+      - if: steps.lock.outputs.exists == 'true'
+        run: pnpm exec playwright install --with-deps chromium
+      - if: steps.lock.outputs.exists == 'true'
+        run: pnpm build
+      - if: steps.lock.outputs.exists == 'true'
+        run: pnpm test:e2e:smoke
