@@ -1,12 +1,11 @@
+import type { OpaqueTokenService } from '@/src/application/auth/opaque-token-service';
 import type { PinHasher } from '@/src/application/auth/pin-hasher';
 import { newId } from '@/src/domain/shared/id';
 import type { ChildId, ChildSessionId, DeviceId } from '@/src/domain/shared/id';
-import { createOpaqueToken, hashOpaqueToken } from '@/src/infrastructure/auth/token-crypto';
 import type { IdentityRepository } from './identity-repository';
 import { IdentityDomainError } from './family-identity-service';
 
 export interface SessionSecurityConfig {
-  hashSecret: string;
   childSessionTtlSeconds: number;
   maxPinAttempts: number;
   pinLockoutSeconds: number;
@@ -16,6 +15,7 @@ export class ChildSessionService {
   constructor(
     private readonly repository: IdentityRepository,
     private readonly pinHasher: PinHasher,
+    private readonly tokens: OpaqueTokenService,
     private readonly config: SessionSecurityConfig,
   ) {}
 
@@ -27,7 +27,7 @@ export class ChildSessionService {
     now?: Date;
   }) {
     const now = input.now ?? new Date();
-    const deviceHash = hashOpaqueToken(input.deviceToken, this.config.hashSecret, 'device');
+    const deviceHash = this.tokens.hash(input.deviceToken, 'device');
     const device = await this.repository.findTrustedDeviceByTokenHash(deviceHash);
 
     if (!device || device.id !== input.deviceId || device.revokedAt) {
@@ -45,24 +45,28 @@ export class ChildSessionService {
     }
 
     if (credential.lockedUntil && credential.lockedUntil > now) {
-      throw new IdentityDomainError('FORBIDDEN', 'PIN entry is temporarily locked.');
+      throw new IdentityDomainError('RATE_LIMITED', 'PIN entry is temporarily locked.');
     }
 
     const valid = await this.pinHasher.verify(credential.pinHash, input.pin);
     if (!valid) {
-      await this.repository.recordPinFailure({
+      const failed = await this.repository.recordPinFailure({
         familyId: device.familyId,
         childId: input.childId,
         maxAttempts: this.config.maxPinAttempts,
         lockedUntil: new Date(now.getTime() + this.config.pinLockoutSeconds * 1000),
       });
+
+      if (failed && failed.failedAttempts >= this.config.maxPinAttempts) {
+        throw new IdentityDomainError('RATE_LIMITED', 'PIN entry is temporarily locked.');
+      }
+
       throw new IdentityDomainError('FORBIDDEN', 'PIN is incorrect.');
     }
 
     await this.repository.clearPinFailures(device.familyId, input.childId);
 
-    const rawToken = createOpaqueToken();
-    const tokenHash = hashOpaqueToken(rawToken, this.config.hashSecret, 'child-session');
+    const { rawToken, tokenHash } = this.tokens.issue('child-session');
     const expiresAt = new Date(now.getTime() + this.config.childSessionTtlSeconds * 1000);
     const session = await this.repository.createChildSession({
       sessionId: newId<'ChildSessionId'>() as ChildSessionId,
@@ -77,7 +81,7 @@ export class ChildSessionService {
   }
 
   async revokeSessionByToken(rawToken: string, now = new Date()) {
-    const tokenHash = hashOpaqueToken(rawToken, this.config.hashSecret, 'child-session');
+    const tokenHash = this.tokens.hash(rawToken, 'child-session');
     const session = await this.repository.findActiveChildSessionByTokenHash(tokenHash, now);
     if (!session) return false;
     return this.repository.revokeChildSession(session.familyId, session.id, now);

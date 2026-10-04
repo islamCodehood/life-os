@@ -1,5 +1,6 @@
 import type { ActorContext } from '@/src/application/auth/actor-context';
 import type { GuardianIdentity } from '@/src/application/auth/guardian-auth-gateway';
+import type { OpaqueTokenService } from '@/src/application/auth/opaque-token-service';
 import type { PinHasher } from '@/src/application/auth/pin-hasher';
 import { deriveAgeProfile, recommendedVisualization } from '@/src/domain/identity/experience';
 import type { ExperiencePreference } from '@/src/domain/identity/experience';
@@ -13,7 +14,8 @@ export class IdentityDomainError extends Error {
       | 'FORBIDDEN'
       | 'RESOURCE_NOT_FOUND'
       | 'DOMAIN_RULE_VIOLATION'
-      | 'VALIDATION_FAILED',
+      | 'VALIDATION_FAILED'
+      | 'RATE_LIMITED',
     message: string,
   ) {
     super(message);
@@ -38,6 +40,7 @@ export class FamilyIdentityService {
   constructor(
     private readonly repository: IdentityRepository,
     private readonly pinHasher: PinHasher,
+    private readonly tokens: OpaqueTokenService,
     private readonly pinPolicy: PinPolicy,
   ) {}
 
@@ -118,6 +121,26 @@ export class FamilyIdentityService {
     }
 
     await this.repository.updateExperiencePreference(guardian.familyId, childId, preference);
+  }
+
+  async registerDevice(actor: ActorContext, label: string) {
+    const guardian = requireGuardian(actor);
+    const trimmed = label.trim();
+
+    if (!trimmed) {
+      throw new IdentityDomainError('VALIDATION_FAILED', 'Device label is required.');
+    }
+
+    const deviceId = newId<'DeviceId'>() as DeviceId;
+    const { rawToken, tokenHash } = this.tokens.issue('device');
+    const device = await this.repository.registerDevice({
+      familyId: guardian.familyId,
+      deviceId,
+      label: trimmed,
+      tokenHash,
+    });
+
+    return { device, rawToken };
   }
 
   async setChildPin(actor: ActorContext, childId: ChildId, pin: string) {
