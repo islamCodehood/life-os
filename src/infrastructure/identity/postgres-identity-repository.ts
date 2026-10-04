@@ -102,8 +102,7 @@ export class PostgresIdentityRepository implements IdentityRepository {
     timezone: string;
     currency: string;
   }) {
-    return this.db.transaction(async (tx) => {
-      const [guardian] = await tx
+      const [guardian] = await this.db
         .insert(schema.guardianProfiles)
         .values({
           id: input.guardianId,
@@ -121,7 +120,7 @@ export class PostgresIdentityRepository implements IdentityRepository {
 
       if (!guardian) throw new Error('Failed to create guardian profile.');
 
-      const [family] = await tx
+      const [family] = await this.db
         .insert(schema.families)
         .values({
           id: input.familyId,
@@ -133,14 +132,13 @@ export class PostgresIdentityRepository implements IdentityRepository {
 
       if (!family) throw new Error('Failed to create family.');
 
-      await tx.insert(schema.familyGuardians).values({
+      await this.db.insert(schema.familyGuardians).values({
         familyId: family.id,
         guardianId: guardian.id,
         role: 'OWNER',
       });
 
       return { family: familyRow(family), guardian: guardianRow(guardian) };
-    });
   }
 
   async createChild(input: {
@@ -151,8 +149,7 @@ export class PostgresIdentityRepository implements IdentityRepository {
     avatarKey: string | null;
     experience: ExperiencePreference;
   }) {
-    return this.db.transaction(async (tx) => {
-      const [child] = await tx
+      const [child] = await this.db
         .insert(schema.childProfiles)
         .values({
           id: input.childId,
@@ -165,7 +162,7 @@ export class PostgresIdentityRepository implements IdentityRepository {
 
       if (!child) throw new Error('Failed to create child profile.');
 
-      await tx.insert(schema.experiencePreferences).values({
+      await this.db.insert(schema.experiencePreferences).values({
         childId: child.id,
         familyId: input.familyId,
         visualization: input.experience.visualization,
@@ -174,7 +171,6 @@ export class PostgresIdentityRepository implements IdentityRepository {
       });
 
       return childRow(child);
-    });
   }
 
   async getChild(familyId: FamilyId, childId: ChildId) {
@@ -290,8 +286,7 @@ export class PostgresIdentityRepository implements IdentityRepository {
   }
 
   async revokeDevice(familyId: FamilyId, deviceId: DeviceId, revokedAt: Date) {
-    return this.db.transaction(async (tx) => {
-      const rows = await tx
+      const rows = await this.db
         .update(schema.householdDevices)
         .set({
           revokedAt,
@@ -308,7 +303,7 @@ export class PostgresIdentityRepository implements IdentityRepository {
 
       if (rows.length === 0) return false;
 
-      await tx
+      await this.db
         .update(schema.childSessions)
         .set({ revokedAt })
         .where(
@@ -320,7 +315,6 @@ export class PostgresIdentityRepository implements IdentityRepository {
         );
 
       return true;
-    });
   }
 
   async findTrustedDeviceByTokenHash(tokenHash: string) {
