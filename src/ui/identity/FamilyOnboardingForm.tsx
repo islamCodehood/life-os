@@ -1,10 +1,12 @@
 'use client';
 
 import { Button, Card } from '@life-os/design-system';
+import { useRouter } from 'next/navigation';
 import { v7 as uuidv7 } from 'uuid';
 import { useState } from 'react';
 
 export function FamilyOnboardingForm({ locale }: { locale: string }) {
+  const router = useRouter();
   const [name, setName] = useState('');
   const [timezone, setTimezone] = useState('Africa/Cairo');
   const [currency, setCurrency] = useState('EGP');
@@ -29,7 +31,8 @@ export function FamilyOnboardingForm({ locale }: { locale: string }) {
       setError(body.error?.message ?? 'Could not create family.');
       return;
     }
-    window.location.assign(`/${locale}/parent`);
+    router.push(`/${locale}/parent`);
+    router.refresh();
   }
 
   return (
