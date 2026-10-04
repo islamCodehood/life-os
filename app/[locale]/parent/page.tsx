@@ -1,8 +1,11 @@
 import { Button, Card } from '@life-os/design-system';
-import { redirect } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { currentDateInTimezone } from '@/src/application/identity/current-date';
+import { getIdentityMessages } from '@/src/i18n/identity-messages';
+import { isLocale } from '@/src/i18n/locales';
 import { currentServerRequest } from '@/src/infrastructure/auth/server-request';
 import { createIdentityRuntime } from '@/src/infrastructure/composition/identity-runtime';
+import { ParentIdentitySetup } from '@/src/ui/identity/ParentIdentitySetup';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,6 +15,8 @@ export default async function ParentShellPage({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
+  if (!isLocale(locale)) notFound();
+  const messages = getIdentityMessages(locale);
   const runtime = await createIdentityRuntime();
   const actor = await runtime.actorResolver.resolve(
     await currentServerRequest(`/${locale}/parent`),
@@ -32,22 +37,27 @@ export default async function ParentShellPage({
   return (
     <main className="lo-app-foundation">
       <section className="lo-app-foundation__hero">
-        <span className="lo-app-foundation__eyebrow">Parent mode</span>
+        <span className="lo-app-foundation__eyebrow">{messages.parentMode}</span>
         <h1>{family?.name ?? 'Life OS'}</h1>
-        <p>Family identity and shared-device administration are active.</p>
+        <p>{messages.identityActive}</p>
       </section>
 
       <Card className="lo-app-foundation__card" variant="soft">
-        <strong>Children</strong>
+        <strong>{messages.children}</strong>
         <p>
           {children.length === 0
-            ? 'No child profiles yet.'
+            ? messages.noChildren
             : children.map((child) => child.displayName).join(' · ')}
         </p>
         <form action={`/${locale}`}>
-          <Button type="submit">Switch profile</Button>
+          <Button type="submit">{messages.switchProfile}</Button>
         </form>
       </Card>
+
+      <ParentIdentitySetup
+        children={children.map((child) => ({ id: child.id, displayName: child.displayName }))}
+        messages={messages}
+      />
     </main>
   );
 }
