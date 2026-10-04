@@ -78,7 +78,11 @@ export async function POST(request: Request) {
             );
             break;
           case 'RegisterHouseholdDevice': {
-            const enrolled = await familyIdentity.registerDevice(actor, command.payload.label);
+            const enrolled = await familyIdentity.registerDevice(
+              actor,
+              command.payload.label,
+              command.commandId,
+            );
             data = { device: enrolled.device };
             deviceToken = enrolled.rawToken;
             break;
@@ -123,8 +127,14 @@ export async function POST(request: Request) {
       },
     });
 
-    if (result.transient?.deviceToken) {
-      response.cookies.set(authCookieNames.householdDevice, result.transient.deviceToken, {
+    const deviceToken =
+      result.transient?.deviceToken ??
+      (command.type === 'RegisterHouseholdDevice'
+        ? runtime.tokens.issueDeterministic('device', command.commandId).rawToken
+        : undefined);
+
+    if (deviceToken) {
+      response.cookies.set(authCookieNames.householdDevice, deviceToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
