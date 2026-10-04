@@ -1,0 +1,67 @@
+{
+  "name": "@life-os/app",
+  "version": "0.0.0",
+  "private": true,
+  "packageManager": "pnpm@10.18.0",
+  "engines": {
+    "node": ">=24.0.0 <25"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run",
+    "test:domain": "vitest run tests/domain",
+    "test:unit": "vitest run tests/unit",
+    "test:integration": "vitest run tests/integration",
+    "test:e2e": "playwright test",
+    "test:e2e:smoke": "playwright test --grep @smoke",
+    "check:architecture": "node scripts/check-architecture.mjs",
+    "check:browser-bundle": "node scripts/check-browser-bundle.mjs",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:studio": "drizzle-kit studio",
+    "check": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm test:domain && pnpm test:unit && pnpm test:integration && pnpm build && pnpm check:browser-bundle"
+  },
+  "dependencies": {
+    "@hookform/resolvers": "5.9.1",
+    "@life-os/design-system": "github:islamCodehood/life-os-design-system#e550c94a847392c484295ae37f5feb3ad7fcea39",
+    "@supabase/ssr": "0.12.7",
+    "@supabase/supabase-js": "2.117.1",
+    "@tanstack/react-query": "5.104.0",
+    "dexie": "4.4.6",
+    "drizzle-orm": "0.45.3",
+    "next": "16.3.8",
+    "pg": "8.23.1",
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
+    "react-hook-form": "7.88.0",
+    "zod": "4.6.5"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0",
+    "@types/node": "^24.10.0",
+    "@types/pg": "^8.15.0",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "drizzle-kit": "0.31.10",
+    "eslint": "^9.39.0",
+    "eslint-config-next": "16.3.8",
+    "prettier": "3.9.9",
+    "typescript": "^5.9.3",
+    "vitest": "5.0.3"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@life-os/design-system",
+      "@next/swc-linux-x64-gnu",
+      "@next/swc-linux-x64-musl",
+      "esbuild",
+      "sharp"
+    ]
+  }
+}

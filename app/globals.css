@@ -1,0 +1,70 @@
+html {
+  background: var(--lo-bg-page);
+  color: var(--lo-text-primary);
+}
+
+body {
+  min-block-size: 100vh;
+  margin: 0;
+  background: var(--lo-bg-page);
+  color: var(--lo-text-primary);
+  font-family: Inter, 'Noto Sans Arabic', system-ui, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.lo-app-foundation {
+  inline-size: min(100% - 32px, 720px);
+  min-block-size: 100vh;
+  margin-inline: auto;
+  display: grid;
+  align-content: center;
+  gap: var(--lo-space-5);
+  padding-block: var(--lo-space-8);
+}
+
+.lo-app-foundation__hero {
+  display: grid;
+  gap: var(--lo-space-3);
+}
+
+.lo-app-foundation__hero h1,
+.lo-app-foundation__hero p,
+.lo-app-foundation__card p,
+.lo-app-foundation__note {
+  margin: 0;
+}
+
+.lo-app-foundation__hero h1 {
+  font-size: clamp(2rem, 6vw, 3.5rem);
+  line-height: 1.05;
+}
+
+.lo-app-foundation__hero p,
+.lo-app-foundation__card p {
+  color: var(--lo-text-secondary);
+  line-height: var(--lo-line-body);
+}
+
+.lo-app-foundation__eyebrow {
+  color: var(--lo-sage-700);
+  font-size: var(--lo-type-label-md);
+  font-weight: var(--lo-weight-semibold);
+}
+
+.lo-app-foundation__card {
+  display: grid;
+  gap: var(--lo-space-4);
+}
+
+.lo-app-foundation__note {
+  color: var(--lo-text-secondary);
+  font-size: var(--lo-type-body-sm);
+}
+
+[dir='rtl'] .lo-app-foundation {
+  font-family: 'Noto Sans Arabic', Inter, system-ui, sans-serif;
+  line-height: 1.6;
+}
