@@ -91,21 +91,23 @@ export function ChildTodayResponsibilities({
         const localizedWhy =
           item.templateKey === 'SELF_MAKE_BED' ? messages.makeBedWhy : item.why;
 
+        const meta =
+          item.status === 'pending' && !available
+            ? messages.notAvailableYet
+            : item.status === 'pending' && !open
+              ? messages.opportunityClosed
+              : null;
+
         return {
           id: item.id,
           title: localizedTitle,
-          why: localizedWhy ?? undefined,
           whyLabel: messages.whyLabel,
           scheduleLabel: `${messages.targetPrefix}: ${item.scheduleLabel}`,
           status: item.status,
           syncState: pendingId === item.id ? ('pending' as const) : ('synced' as const),
-          meta:
-            item.status === 'pending' && !available
-              ? messages.notAvailableYet
-              : item.status === 'pending' && !open
-                ? messages.opportunityClosed
-                : undefined,
-          onToggle: canComplete ? () => complete(item) : undefined,
+          ...(localizedWhy ? { why: localizedWhy } : {}),
+          ...(meta ? { meta } : {}),
+          ...(canComplete ? { onToggle: () => void complete(item) } : {}),
         };
       })}
     />
