@@ -44,9 +44,9 @@ export function ChildTodayResponsibilities({
   const [savingId, setSavingId] = useState<string | null>(null);
   const [online, setOnline] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [localCompletions, setLocalCompletions] = useState<
-    Record<string, LocalCompletionState>
-  >({});
+  const [localCompletions, setLocalCompletions] = useState<Record<string, LocalCompletionState>>(
+    {},
+  );
 
   const { actorKey, familyId, childId, deviceId } = actorScope;
 
@@ -146,14 +146,7 @@ export function ChildTodayResponsibilities({
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
-  }, [
-    actorKey,
-    childId,
-    deviceId,
-    familyId,
-    messages.offlineStorageFailed,
-    router,
-  ]);
+  }, [actorKey, childId, deviceId, familyId, messages.offlineStorageFailed, router]);
 
   async function complete(item: ActivityCardDto) {
     if (item.status !== 'pending' || savingId || localCompletions[item.id]) return;
@@ -184,9 +177,7 @@ export function ChildTodayResponsibilities({
         [item.id]: completionStateFromCommand(command),
       }));
       setItems((current) =>
-        current.map((entry) =>
-          entry.id === item.id ? { ...entry, status: 'completed' } : entry,
-        ),
+        current.map((entry) => (entry.id === item.id ? { ...entry, status: 'completed' } : entry)),
       );
     } catch {
       setError(messages.offlineStorageFailed);
@@ -207,16 +198,11 @@ export function ChildTodayResponsibilities({
         const open = referenceTimeMs <= Date.parse(item.opportunityEndsAt);
         const local = localCompletions[item.id];
         const canComplete =
-          item.status === 'pending' &&
-          !local &&
-          available &&
-          open &&
-          savingId === null;
+          item.status === 'pending' && !local && available && open && savingId === null;
 
         const localizedTitle =
           item.templateKey === 'SELF_MAKE_BED' ? messages.makeBedTitle : item.title;
-        const localizedWhy =
-          item.templateKey === 'SELF_MAKE_BED' ? messages.makeBedWhy : item.why;
+        const localizedWhy = item.templateKey === 'SELF_MAKE_BED' ? messages.makeBedWhy : item.why;
 
         const localMeta =
           local?.status === 'CONFLICT'
