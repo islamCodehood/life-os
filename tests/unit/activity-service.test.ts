@@ -124,12 +124,7 @@ class InMemoryActivityRepository implements ActivityRepository {
     return { instance, assignment, definition };
   }
 
-  async listChildInstancesBetween(
-    familyId: FamilyId,
-    childId: ChildId,
-    start: Date,
-    end: Date,
-  ) {
+  async listChildInstancesBetween(familyId: FamilyId, childId: ChildId, start: Date, end: Date) {
     return [...this.instances.values()]
       .filter(
         (instance) =>
@@ -381,16 +376,9 @@ describe('ActivityService Make Bed pilot', () => {
 
   it('returns only the active child own Today card', async () => {
     const f = fixture();
-    await f.service.assignMakeBed(
-      f.guardian,
-      f.childId,
-      new Date('2026-10-05T02:00:00.000Z'),
-    );
+    await f.service.assignMakeBed(f.guardian, f.childId, new Date('2026-10-05T02:00:00.000Z'));
 
-    const today = await f.service.getChildToday(
-      f.child,
-      new Date('2026-10-05T07:00:00.000Z'),
-    );
+    const today = await f.service.getChildToday(f.child, new Date('2026-10-05T07:00:00.000Z'));
 
     expect(today.date).toBe('2026-10-05');
     expect(today.sections[0]?.items).toHaveLength(1);

@@ -45,12 +45,12 @@ describe('daily opportunity schedule', () => {
       availableOffsetMinutes: -60,
     };
 
-    expect(
-      initialDailyActiveDate({ ...common, now: new Date('2026-10-05T05:59:00.000Z') }),
-    ).toBe('2026-10-05');
-    expect(
-      initialDailyActiveDate({ ...common, now: new Date('2026-10-05T06:00:00.000Z') }),
-    ).toBe('2026-10-06');
+    expect(initialDailyActiveDate({ ...common, now: new Date('2026-10-05T05:59:00.000Z') })).toBe(
+      '2026-10-05',
+    );
+    expect(initialDailyActiveDate({ ...common, now: new Date('2026-10-05T06:00:00.000Z') })).toBe(
+      '2026-10-06',
+    );
   });
 
   it('uses the family timezone when deriving the local date', () => {
