@@ -39,6 +39,7 @@ export default async function ChildShellPage({ params }: { params: Promise<{ loc
       <ChildTodayResponsibilities
         items={today.sections.flatMap((section) => section.items)}
         messages={activityMessages}
+        referenceTime={today.generatedAt}
       />
     </main>
   );
