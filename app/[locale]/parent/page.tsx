@@ -1,10 +1,12 @@
 import { Button, Card } from '@life-os/design-system';
 import { notFound, redirect } from 'next/navigation';
 import { currentDateInTimezone } from '@/src/application/identity/current-date';
+import { getActivityMessages } from '@/src/i18n/activity-messages';
 import { getIdentityMessages } from '@/src/i18n/identity-messages';
 import { isLocale } from '@/src/i18n/locales';
 import { currentServerRequest } from '@/src/infrastructure/auth/server-request';
-import { createIdentityRuntime } from '@/src/infrastructure/composition/identity-runtime';
+import { createActivityRuntime } from '@/src/infrastructure/composition/activity-runtime';
+import { ParentMakeBedPanel } from '@/src/ui/activity/ParentMakeBedPanel';
 import { ParentIdentitySetup } from '@/src/ui/identity/ParentIdentitySetup';
 
 export const dynamic = 'force-dynamic';
@@ -12,8 +14,10 @@ export const dynamic = 'force-dynamic';
 export default async function ParentShellPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
-  const messages = getIdentityMessages(locale);
-  const runtime = await createIdentityRuntime();
+
+  const identityMessages = getIdentityMessages(locale);
+  const activityMessages = getActivityMessages(locale);
+  const runtime = await createActivityRuntime();
   const actor = await runtime.actorResolver.resolve(
     await currentServerRequest(`/${locale}/parent`),
   );
@@ -30,30 +34,63 @@ export default async function ParentShellPage({ params }: { params: Promise<{ lo
       )
     : [];
 
+  const formatter = new Intl.DateTimeFormat(locale === 'ar' ? 'ar' : 'en', {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+    timeZone: family?.timezone ?? 'UTC',
+  });
+
+  const pilotChildren = await Promise.all(
+    children.map(async (child) => {
+      const [assignment, history] = await Promise.all([
+        runtime.activityRepository.findActiveAssignmentByTemplate(
+          actor.familyId,
+          child.id,
+          'SELF_MAKE_BED',
+        ),
+        runtime.activities.getParentHistory(actor, child.id),
+      ]);
+
+      return {
+        id: child.id,
+        displayName: child.displayName,
+        assigned: assignment !== null,
+        ...(assignment ? { activeFrom: assignment.activeFrom } : {}),
+        history: history.map((entry) => ({
+          id: entry.completion.id,
+          label: formatter.format(entry.completion.occurredAt),
+          selfInitiated: entry.completion.selfInitiated,
+        })),
+      };
+    }),
+  );
+
   return (
     <main className="lo-app-foundation">
       <section className="lo-app-foundation__hero">
-        <span className="lo-app-foundation__eyebrow">{messages.parentMode}</span>
+        <span className="lo-app-foundation__eyebrow">{identityMessages.parentMode}</span>
         <h1>{family?.name ?? 'Life OS'}</h1>
-        <p>{messages.identityActive}</p>
+        <p>{identityMessages.identityActive}</p>
       </section>
 
       <Card className="lo-app-foundation__card" variant="soft">
-        <strong>{messages.children}</strong>
+        <strong>{identityMessages.children}</strong>
         <p>
           {children.length === 0
-            ? messages.noChildren
+            ? identityMessages.noChildren
             : children.map((child) => child.displayName).join(' · ')}
         </p>
         <form action={`/${locale}`}>
-          <Button type="submit">{messages.switchProfile}</Button>
+          <Button type="submit">{identityMessages.switchProfile}</Button>
         </form>
       </Card>
 
       <ParentIdentitySetup
         childProfiles={children.map((child) => ({ id: child.id, displayName: child.displayName }))}
-        messages={messages}
+        messages={identityMessages}
       />
+
+      <ParentMakeBedPanel children={pilotChildren} messages={activityMessages} />
     </main>
   );
 }
