@@ -6,7 +6,7 @@ Life OS is an offline-capable family PWA designed to help children progressively
 
 ## Current status
 
-**Epic 0 — Engineering Foundation** is complete. The current implementation target is **Epic 1 — Family Identity + Child-Scoped Sessions**. Do not start E2 / Make Bed behavior until the E1 acceptance gates are green and E1 is merged.
+**Epic 0 — Engineering Foundation** and **Epic 1 — Family Identity + Child-Scoped Sessions** are complete. The current implementation target is **E2 — Make Bed pilot slice**, the first end-to-end responsibility flow used to prove the activity architecture before generalizing the broader task/responsibility system.
 
 ## Start here
 
