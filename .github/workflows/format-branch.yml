@@ -1,12 +1,21 @@
-name: Format E0 branch
+name: Format feature branch
 
 on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: Feature branch to format
+        required: true
   push:
     branches:
-      - feat/e0-engineering-foundation
+      - feat/e1-family-identity-sessions
 
 permissions:
   contents: write
+
+concurrency:
+  group: e1-format
+  cancel-in-progress: true
 
 jobs:
   format:
@@ -15,7 +24,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: feat/e0-engineering-foundation
+          ref: feat/e1-family-identity-sessions
           fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
@@ -33,6 +42,6 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add .
-          git commit -m "style: apply Prettier formatting"
-          git pull --rebase origin feat/e0-engineering-foundation
-          git push origin HEAD:feat/e0-engineering-foundation
+          git commit -m "style(e1): apply Prettier formatting"
+          git pull --rebase origin feat/e1-family-identity-sessions
+          git push origin HEAD:feat/e1-family-identity-sessions

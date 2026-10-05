@@ -1,31 +1,25 @@
-import { Button, Card } from '@life-os/design-system';
 import { notFound } from 'next/navigation';
-import { getMessages, isLocale } from '@/src/i18n/messages';
+import { getIdentityMessages } from '@/src/i18n/identity-messages';
+import { isLocale } from '@/src/i18n/locales';
+import { ProfileSwitcher } from '@/src/ui/identity/ProfileSwitcher';
 
-export default async function FoundationPage({ params }: { params: Promise<{ locale: string }> }) {
+export default async function ProfileSwitcherPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
   const { locale } = await params;
-
-  if (!isLocale(locale)) {
-    notFound();
-  }
-
-  const messages = getMessages(locale);
+  if (!isLocale(locale)) notFound();
+  const messages = getIdentityMessages(locale);
 
   return (
     <main className="lo-app-foundation">
-      <section className="lo-app-foundation__hero" aria-labelledby="foundation-title">
-        <span className="lo-app-foundation__eyebrow">{messages.eyebrow}</span>
-        <h1 id="foundation-title">{messages.title}</h1>
-        <p>{messages.description}</p>
+      <section className="lo-app-foundation__hero" aria-labelledby="profile-switcher-title">
+        <span className="lo-app-foundation__eyebrow">Life OS</span>
+        <h1 id="profile-switcher-title">{messages.heading}</h1>
+        <p>{messages.intro}</p>
       </section>
-
-      <Card className="lo-app-foundation__card" variant="soft">
-        <strong>{messages.designSystemTitle}</strong>
-        <p>{messages.designSystemBody}</p>
-        <Button>{messages.smokeAction}</Button>
-      </Card>
-
-      <p className="lo-app-foundation__note">{messages.epicNote}</p>
+      <ProfileSwitcher locale={locale} messages={messages} />
     </main>
   );
 }

@@ -6,7 +6,7 @@ Life OS is an offline-capable family PWA designed to help children progressively
 
 ## Current status
 
-The repository is in **Epic 0 — Engineering Foundation**. No Life OS business features should be implemented before the E0 gates are green.
+**Epic 0 — Engineering Foundation** is complete. The current implementation target is **Epic 1 — Family Identity + Child-Scoped Sessions**. Do not start E2 / Make Bed behavior until the E1 acceptance gates are green and E1 is merged.
 
 ## Start here
 

@@ -1,23 +1,19 @@
 import { expect, test } from '@playwright/test';
 
-test('@smoke English shell is LTR and consumes the design system', async ({ page }) => {
+test('@smoke English shell is LTR', async ({ page }) => {
   await page.goto('/en');
 
   await expect(page.locator('html')).toHaveAttribute('lang', 'en');
   await expect(page.locator('html')).toHaveAttribute('dir', 'ltr');
-  await expect(page.getByRole('heading', { name: 'Life OS foundation is running.' })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Foundation ready' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Who is using Life OS?' })).toBeVisible();
 });
 
-test('@smoke Arabic shell is RTL and preserves equivalent content', async ({ page }) => {
+test('@smoke Arabic shell is RTL with equivalent identity entry point', async ({ page }) => {
   await page.goto('/ar');
 
   await expect(page.locator('html')).toHaveAttribute('lang', 'ar');
   await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
-  await expect(
-    page.getByRole('heading', { name: 'الأساس التقني لنظام Life OS يعمل.' }),
-  ).toBeVisible();
-  await expect(page.getByRole('button', { name: 'الأساس جاهز' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'من يستخدم Life OS؟' })).toBeVisible();
 });
 
 test('@smoke health endpoint propagates a safe request ID', async ({ request }) => {
