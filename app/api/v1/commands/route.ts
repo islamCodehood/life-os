@@ -45,6 +45,9 @@ export async function POST(request: Request) {
     const actor = await runtime.actorResolver.resolve(request);
 
     if (!actor) throw new AppError('AUTH_REQUIRED', 'Authentication is required.');
+    if (actor.kind === 'SYSTEM') {
+      throw new AppError('FORBIDDEN', 'A family actor is required.');
+    }
 
     const result = await executeIdempotentCommand<CommandResponse, { deviceToken?: string }>({
       commandId: command.commandId,
