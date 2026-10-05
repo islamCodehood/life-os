@@ -19,11 +19,11 @@ export interface ParentMakeBedChild {
 }
 
 export interface ParentMakeBedPanelProps {
-  children: ParentMakeBedChild[];
+  childProfiles: ParentMakeBedChild[];
   messages: ActivityMessages;
 }
 
-export function ParentMakeBedPanel({ children, messages }: ParentMakeBedPanelProps) {
+export function ParentMakeBedPanel({ childProfiles, messages }: ParentMakeBedPanelProps) {
   const router = useRouter();
   const [assigningId, setAssigningId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -62,7 +62,7 @@ export function ParentMakeBedPanel({ children, messages }: ParentMakeBedPanelPro
 
       {error && <p role="alert">{error}</p>}
 
-      {children.map((child) => (
+      {childProfiles.map((child) => (
         <Card key={child.id} className="lo-app-foundation__card" variant="soft">
           <strong>{child.displayName}</strong>
           <p>{child.assigned ? messages.assigned : messages.makeBedTitle}</p>
