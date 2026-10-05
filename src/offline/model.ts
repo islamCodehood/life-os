@@ -1,9 +1,4 @@
-export type OfflineCommandStatus =
-  | 'PENDING'
-  | 'SYNCING'
-  | 'BLOCKED'
-  | 'CONFLICT'
-  | 'FAILED';
+export type OfflineCommandStatus = 'PENDING' | 'SYNCING' | 'BLOCKED' | 'CONFLICT' | 'FAILED';
 
 export interface OfflineActorScope {
   actorKey: string;
