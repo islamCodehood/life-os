@@ -4,6 +4,7 @@ import { getIdentityMessages } from '@/src/i18n/identity-messages';
 import { isLocale } from '@/src/i18n/locales';
 import { currentServerRequest } from '@/src/infrastructure/auth/server-request';
 import { createActivityRuntime } from '@/src/infrastructure/composition/activity-runtime';
+import { childOfflineActorScope } from '@/src/offline/actor-scope';
 import { ChildTodayResponsibilities } from '@/src/ui/activity/ChildTodayResponsibilities';
 
 export const dynamic = 'force-dynamic';
@@ -25,6 +26,11 @@ export default async function ChildShellPage({ params }: { params: Promise<{ loc
   if (!child) redirect(`/${locale}`);
 
   const today = await runtime.activities.getChildToday(actor);
+  const actorScope = childOfflineActorScope({
+    familyId: actor.familyId,
+    childId: actor.childId,
+    deviceId: actor.deviceId,
+  });
 
   return (
     <main className="lo-app-foundation">
@@ -40,6 +46,7 @@ export default async function ChildShellPage({ params }: { params: Promise<{ loc
         items={today.sections.flatMap((section) => section.items)}
         messages={activityMessages}
         referenceTime={today.generatedAt}
+        actorScope={actorScope}
       />
     </main>
   );
