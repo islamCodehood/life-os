@@ -60,7 +60,7 @@ export class BrowserOfflineRuntime {
       current.retryTimer = window.setTimeout(() => {
         const latest = this.activeActors.get(scope.actorKey);
         if (latest) {
-          latest.retryTimer = undefined;
+          delete latest.retryTimer;
           void this.signalSync(scope);
         }
       }, 5_000);
