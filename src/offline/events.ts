@@ -1,12 +1,7 @@
 import type { AcceptedCommandResponse, OfflineCommandStatus } from '@/src/offline/model';
 
 export type OfflineCommandEventPhase =
-  | 'QUEUED'
-  | 'SYNCING'
-  | 'PENDING'
-  | 'ACCEPTED'
-  | 'CONFLICT'
-  | 'FAILED';
+  'QUEUED' | 'SYNCING' | 'PENDING' | 'ACCEPTED' | 'CONFLICT' | 'FAILED';
 
 export interface OfflineCommandEvent {
   actorKey: string;
