@@ -9,7 +9,6 @@ import type {
   CompletionRecord,
 } from '@/src/domain/activity/entities';
 import type {
-  ActivityAssignmentId,
   ActivityInstanceId,
   ChildId,
   DomainEventId,
