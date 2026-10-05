@@ -74,8 +74,6 @@ export function ChildTodayResponsibilities({
     }
   }
 
-  const now = Date.now();
-
   return (
     <TodayResponsibilityGroup
       title={messages.todayTitle}
@@ -83,20 +81,13 @@ export function ChildTodayResponsibilities({
       emptyState={messages.nothingToday}
       footer={error ? <p role="alert">{error}</p> : undefined}
       items={items.map((item) => {
-        const available = now >= Date.parse(item.availableFrom);
-        const open = now <= Date.parse(item.opportunityEndsAt);
-        const canComplete = item.status === 'pending' && available && open && pendingId === null;
+        const canComplete = item.status === 'pending' && pendingId === null;
         const localizedTitle =
           item.templateKey === 'SELF_MAKE_BED' ? messages.makeBedTitle : item.title;
         const localizedWhy =
           item.templateKey === 'SELF_MAKE_BED' ? messages.makeBedWhy : item.why;
 
-        const meta =
-          item.status === 'pending' && !available
-            ? messages.notAvailableYet
-            : item.status === 'pending' && !open
-              ? messages.opportunityClosed
-              : null;
+        const meta = null;
 
         return {
           id: item.id,
