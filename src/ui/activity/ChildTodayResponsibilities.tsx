@@ -10,11 +10,13 @@ import type { ActivityMessages } from '@/src/i18n/activity-messages';
 export interface ChildTodayResponsibilitiesProps {
   items: ActivityCardDto[];
   messages: ActivityMessages;
+  referenceTime: string;
 }
 
 export function ChildTodayResponsibilities({
   items: initialItems,
   messages,
+  referenceTime,
 }: ChildTodayResponsibilitiesProps) {
   const router = useRouter();
   const [items, setItems] = useState(initialItems);
@@ -81,13 +83,21 @@ export function ChildTodayResponsibilities({
       emptyState={messages.nothingToday}
       footer={error ? <p role="alert">{error}</p> : undefined}
       items={items.map((item) => {
-        const canComplete = item.status === 'pending' && pendingId === null;
+        const referenceTimeMs = Date.parse(referenceTime);
+        const available = referenceTimeMs >= Date.parse(item.availableFrom);
+        const open = referenceTimeMs <= Date.parse(item.opportunityEndsAt);
+        const canComplete = item.status === 'pending' && available && open && pendingId === null;
         const localizedTitle =
           item.templateKey === 'SELF_MAKE_BED' ? messages.makeBedTitle : item.title;
         const localizedWhy =
           item.templateKey === 'SELF_MAKE_BED' ? messages.makeBedWhy : item.why;
 
-        const meta = null;
+        const meta =
+          item.status === 'pending' && !available
+            ? messages.notAvailableYet
+            : item.status === 'pending' && !open
+              ? messages.opportunityClosed
+              : null;
 
         return {
           id: item.id,
