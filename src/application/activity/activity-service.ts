@@ -52,6 +52,8 @@ export interface ActivityCardDto {
   status: 'pending' | 'completed' | 'missed' | 'unresolved';
   version: number;
   targetAt: string;
+  availableFrom: string;
+  opportunityEndsAt: string;
 }
 
 export interface ChildTodayDto {
@@ -241,6 +243,8 @@ export class ActivityService {
             status: cardStatus(instance.status),
             version: instance.version,
             targetAt: instance.targetAt.toISOString(),
+            availableFrom: instance.availableFrom.toISOString(),
+            opportunityEndsAt: instance.opportunityEndsAt.toISOString(),
           })),
         },
       ],
