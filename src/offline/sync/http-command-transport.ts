@@ -30,10 +30,7 @@ async function responseError(response: Response) {
 }
 
 export class HttpCommandTransport implements CommandTransport {
-  async send(
-    command: OfflineCommandRecord,
-    signal?: AbortSignal,
-  ): Promise<CommandTransportResult> {
+  async send(command: OfflineCommandRecord, signal?: AbortSignal): Promise<CommandTransportResult> {
     try {
       const response = await fetch('/api/v1/commands', {
         method: 'POST',

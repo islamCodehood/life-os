@@ -7,13 +7,7 @@ import type {
 } from '@/src/offline/model';
 
 export type SyncOutcome =
-  | 'IDLE'
-  | 'ACCEPTED'
-  | 'RETRYABLE'
-  | 'CONFLICT'
-  | 'FAILED'
-  | 'BLOCKED'
-  | 'ABORTED';
+  'IDLE' | 'ACCEPTED' | 'RETRYABLE' | 'CONFLICT' | 'FAILED' | 'BLOCKED' | 'ABORTED';
 
 export interface SyncResult {
   outcome: SyncOutcome;
