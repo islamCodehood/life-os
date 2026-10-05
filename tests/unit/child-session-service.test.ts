@@ -94,6 +94,19 @@ describe('ChildSessionService', () => {
     expect(result.session.deviceId).toBe(deviceId);
   });
 
+  it('denies an invalid device credential even when the device id is known', async () => {
+    const { service, childId, deviceId } = fixture();
+
+    await expect(
+      service.createSession({
+        childId,
+        deviceId,
+        deviceToken: 'wrong-device-secret',
+        pin: '1234',
+      }),
+    ).rejects.toMatchObject({ code: 'FORBIDDEN' });
+  });
+
   it('denies a revoked device', async () => {
     const { repository, service, familyId, childId, deviceId } = fixture();
     await repository.revokeDevice(familyId, deviceId, new Date('2026-10-04T11:00:00Z'));
