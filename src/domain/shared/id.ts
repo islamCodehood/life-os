@@ -12,6 +12,11 @@ export type ChildId = BrandedId<'ChildId'>;
 export type DeviceId = BrandedId<'DeviceId'>;
 export type ChildSessionId = BrandedId<'ChildSessionId'>;
 export type CommandId = BrandedId<'CommandId'>;
+export type ActivityDefinitionId = BrandedId<'ActivityDefinitionId'>;
+export type ActivityAssignmentId = BrandedId<'ActivityAssignmentId'>;
+export type ActivityInstanceId = BrandedId<'ActivityInstanceId'>;
+export type CompletionRecordId = BrandedId<'CompletionRecordId'>;
+export type DomainEventId = BrandedId<'DomainEventId'>;
 
 export function newId<Name extends string>(): BrandedId<Name> {
   return uuidv7() as BrandedId<Name>;
