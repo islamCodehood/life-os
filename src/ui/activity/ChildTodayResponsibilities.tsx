@@ -102,12 +102,13 @@ export function ChildTodayResponsibilities({
         return;
       }
 
-      if (!event.status) return;
+      const status = event.status;
+      if (!status) return;
       setLocalCompletions((current) => ({
         ...current,
         [event.activityInstanceId]: {
           commandId: event.commandId,
-          status: event.status,
+          status,
         },
       }));
     });
