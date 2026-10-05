@@ -86,7 +86,10 @@ export default async function ParentShellPage({ params }: { params: Promise<{ lo
       </Card>
 
       <ParentIdentitySetup
-        childProfiles={childProfiles.map((child) => ({ id: child.id, displayName: child.displayName }))}
+        childProfiles={childProfiles.map((child) => ({
+          id: child.id,
+          displayName: child.displayName,
+        }))}
         messages={identityMessages}
       />
 

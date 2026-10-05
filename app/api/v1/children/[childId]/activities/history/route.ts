@@ -8,10 +8,7 @@ import { errorResponse } from '@/src/infrastructure/http/route-error';
 
 const childIdSchema = z.string().uuid();
 
-export async function GET(
-  request: Request,
-  { params }: { params: Promise<{ childId: string }> },
-) {
+export async function GET(request: Request, { params }: { params: Promise<{ childId: string }> }) {
   const requestId = createRequestId(request.headers.get('x-request-id'));
 
   try {

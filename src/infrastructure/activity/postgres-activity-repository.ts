@@ -321,12 +321,7 @@ export class PostgresActivityRepository implements ActivityRepository {
     return instanceRow(existing);
   }
 
-  async listChildInstancesBetween(
-    familyId: FamilyId,
-    childId: ChildId,
-    start: Date,
-    end: Date,
-  ) {
+  async listChildInstancesBetween(familyId: FamilyId, childId: ChildId, start: Date, end: Date) {
     const rows = await this.db
       .select({
         instance: schema.activityInstances,

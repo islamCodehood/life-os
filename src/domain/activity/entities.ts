@@ -11,19 +11,10 @@ import type {
 export type ActivityTemplateKey = 'SELF_MAKE_BED';
 
 export type ActivityCategory =
-  | 'SELF_RESPONSIBILITY'
-  | 'FAMILY_RESPONSIBILITY'
-  | 'GROWTH'
-  | 'VALUES'
-  | 'FAITH';
+  'SELF_RESPONSIBILITY' | 'FAMILY_RESPONSIBILITY' | 'GROWTH' | 'VALUES' | 'FAITH';
 
 export type ActivityInstanceStatus =
-  | 'PENDING'
-  | 'COMPLETED'
-  | 'AWAITING_RESOLUTION'
-  | 'MISSED'
-  | 'EXCUSED'
-  | 'NOT_APPLICABLE';
+  'PENDING' | 'COMPLETED' | 'AWAITING_RESOLUTION' | 'MISSED' | 'EXCUSED' | 'NOT_APPLICABLE';
 
 export interface ActivityTemplate {
   key: ActivityTemplateKey;

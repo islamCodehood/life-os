@@ -68,11 +68,7 @@ export function ParentMakeBedPanel({ childProfiles, messages }: ParentMakeBedPan
           <p>{child.assigned ? messages.assigned : messages.makeBedTitle}</p>
 
           {!child.assigned && (
-            <Button
-              type="button"
-              disabled={assigningId !== null}
-              onClick={() => assign(child.id)}
-            >
+            <Button type="button" disabled={assigningId !== null} onClick={() => assign(child.id)}>
               {assigningId === child.id ? messages.assigning : messages.assignMakeBed}
             </Button>
           )}

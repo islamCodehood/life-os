@@ -1,11 +1,7 @@
 import type { ActivityCategory } from './entities';
 
 export type ActivityProgressMode =
-  | 'INDEPENDENCE'
-  | 'FAMILY_CONTRIBUTION'
-  | 'MASTERY'
-  | 'VALUES_STORY'
-  | 'FAITH_REFLECTION';
+  'INDEPENDENCE' | 'FAMILY_CONTRIBUTION' | 'MASTERY' | 'VALUES_STORY' | 'FAITH_REFLECTION';
 
 export interface ActivityPolicyDecision {
   progressMode: ActivityProgressMode;

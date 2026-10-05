@@ -119,7 +119,10 @@ export class ActivityService {
     if (!template) {
       throw new ActivityDomainError('RESOURCE_NOT_FOUND', 'Make Bed template was not seeded.');
     }
-    if (template.category !== 'SELF_RESPONSIBILITY' || template.defaultScheduleRrule !== 'FREQ=DAILY') {
+    if (
+      template.category !== 'SELF_RESPONSIBILITY' ||
+      template.defaultScheduleRrule !== 'FREQ=DAILY'
+    ) {
       throw new ActivityDomainError(
         'DOMAIN_RULE_VIOLATION',
         'Make Bed template does not match the E2 responsibility contract.',
@@ -272,16 +275,16 @@ export class ActivityService {
       throw new ActivityDomainError('RESOURCE_NOT_FOUND', 'Activity opportunity was not found.');
     }
 
-    const allowed = await this.authorization.canCompleteActivity(input.actor, context.instance.childId);
+    const allowed = await this.authorization.canCompleteActivity(
+      input.actor,
+      context.instance.childId,
+    );
     if (!allowed) {
       throw new ActivityDomainError('RESOURCE_NOT_FOUND', 'Activity opportunity was not found.');
     }
 
     if (context.instance.status === 'COMPLETED') {
-      const existing = await this.repository.getCompletion(
-        familyId,
-        context.instance.id,
-      );
+      const existing = await this.repository.getCompletion(familyId, context.instance.id);
       if (!existing) {
         throw new ActivityDomainError(
           'RESOURCE_STATE_CHANGED',
@@ -298,10 +301,7 @@ export class ActivityService {
       );
     }
 
-    if (
-      input.expectedVersion !== undefined &&
-      input.expectedVersion !== context.instance.version
-    ) {
+    if (input.expectedVersion !== undefined && input.expectedVersion !== context.instance.version) {
       throw new ActivityDomainError('STALE_VERSION', 'This activity changed on another device.');
     }
 

@@ -89,8 +89,7 @@ export function ChildTodayResponsibilities({
         const canComplete = item.status === 'pending' && available && open && pendingId === null;
         const localizedTitle =
           item.templateKey === 'SELF_MAKE_BED' ? messages.makeBedTitle : item.title;
-        const localizedWhy =
-          item.templateKey === 'SELF_MAKE_BED' ? messages.makeBedWhy : item.why;
+        const localizedWhy = item.templateKey === 'SELF_MAKE_BED' ? messages.makeBedWhy : item.why;
 
         const meta =
           item.status === 'pending' && !available

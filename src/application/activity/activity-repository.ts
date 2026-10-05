@@ -8,12 +8,7 @@ import type {
   ActivityTemplateKey,
   CompletionRecord,
 } from '@/src/domain/activity/entities';
-import type {
-  ActivityInstanceId,
-  ChildId,
-  DomainEventId,
-  FamilyId,
-} from '@/src/domain/shared/id';
+import type { ActivityInstanceId, ChildId, DomainEventId, FamilyId } from '@/src/domain/shared/id';
 
 export interface SchedulingFamily {
   familyId: FamilyId;

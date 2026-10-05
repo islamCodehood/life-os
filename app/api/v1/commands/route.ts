@@ -7,11 +7,7 @@ import { Argon2PinHasher } from '@/src/infrastructure/auth/argon2-pin-hasher';
 import { e1CommandSchema } from '@/src/application/identity/e1-command-schema';
 import { FamilyIdentityService } from '@/src/application/identity/family-identity-service';
 import { currentDateInTimezone } from '@/src/application/identity/current-date';
-import type {
-  ActivityInstanceId,
-  ChildId,
-  DeviceId,
-} from '@/src/domain/shared/id';
+import type { ActivityInstanceId, ChildId, DeviceId } from '@/src/domain/shared/id';
 import { PostgresActivityRepository } from '@/src/infrastructure/activity/postgres-activity-repository';
 import { authCookieNames } from '@/src/infrastructure/auth/cookies';
 import { createIdentityRuntime } from '@/src/infrastructure/composition/identity-runtime';

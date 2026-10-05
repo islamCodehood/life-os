@@ -16,7 +16,10 @@ export class AuthorizationService {
   }
 
   async canManageActivity(actor: ActorContext, childId: ChildId): Promise<boolean> {
-    return actor.kind === 'GUARDIAN' && (await this.repository.getChild(actor.familyId, childId)) !== null;
+    return (
+      actor.kind === 'GUARDIAN' &&
+      (await this.repository.getChild(actor.familyId, childId)) !== null
+    );
   }
 
   async canCompleteActivity(actor: ActorContext, childId: ChildId): Promise<boolean> {

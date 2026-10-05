@@ -37,9 +37,11 @@ function zonedParts(instant: Date, timezone: string) {
 
 export function localDateInTimezone(timezone: string, now = new Date()): string {
   const parts = zonedParts(now, timezone);
-  return [parts.year, String(parts.month).padStart(2, '0'), String(parts.day).padStart(2, '0')].join(
-    '-',
-  );
+  return [
+    parts.year,
+    String(parts.month).padStart(2, '0'),
+    String(parts.day).padStart(2, '0'),
+  ].join('-');
 }
 
 export function addDaysToIsoDate(value: string, days: number): string {
@@ -81,9 +83,7 @@ export function buildDailyOpportunityWindow(input: {
   return {
     targetAt,
     availableFrom: new Date(targetAt.getTime() + input.availableOffsetMinutes * 60_000),
-    opportunityEndsAt: new Date(
-      targetAt.getTime() + input.opportunityEndOffsetMinutes * 60_000,
-    ),
+    opportunityEndsAt: new Date(targetAt.getTime() + input.opportunityEndOffsetMinutes * 60_000),
   };
 }
 
