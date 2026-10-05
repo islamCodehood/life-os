@@ -31,6 +31,42 @@ class FakeTokens implements OpaqueTokenService {
 }
 
 describe('FamilyIdentityService', () => {
+  it('creates the first family with the authenticated guardian as owner', async () => {
+    const repository = new InMemoryIdentityRepository();
+    const service = new FamilyIdentityService(repository, new FakePinHasher(), new FakeTokens(), {
+      minLength: 4,
+      maxLength: 8,
+    });
+
+    const result = await service.createFamily(
+      {
+        providerUserId: 'provider-user-1',
+        email: 'parent@example.com',
+        displayName: 'Parent',
+      },
+      {
+        name: ' Sayed Family ',
+        timezone: 'Africa/Cairo',
+        currency: 'egp',
+      },
+    );
+
+    expect(result.family).toMatchObject({
+      name: 'Sayed Family',
+      timezone: 'Africa/Cairo',
+      currency: 'EGP',
+    });
+    expect(result.guardian).toMatchObject({
+      providerUserId: 'provider-user-1',
+      displayName: 'Parent',
+    });
+    expect(repository.memberships).toContainEqual({
+      familyId: result.family.id,
+      guardianId: result.guardian.id,
+      role: 'OWNER',
+    });
+  });
+
   it('creates a child with age-recommended presentation defaults', async () => {
     const repository = new InMemoryIdentityRepository();
     const familyId = '01900000-0000-7000-8000-000000000010' as FamilyId;
