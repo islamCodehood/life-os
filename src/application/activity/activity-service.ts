@@ -256,8 +256,13 @@ export class ActivityService {
     recordedAt?: Date;
     expectedVersion?: number;
   }) {
+    if (input.actor.kind === 'SYSTEM' || !input.actor.familyId) {
+      throw new ActivityDomainError('FORBIDDEN', 'A family actor is required.');
+    }
+
+    const familyId = input.actor.familyId;
     const recordedAt = input.recordedAt ?? new Date();
-    const context = await this.repository.getInstanceForUpdate(input.actor.familyId, input.instanceId);
+    const context = await this.repository.getInstanceForUpdate(familyId, input.instanceId);
 
     if (!context) {
       throw new ActivityDomainError('RESOURCE_NOT_FOUND', 'Activity opportunity was not found.');
@@ -270,7 +275,7 @@ export class ActivityService {
 
     if (context.instance.status === 'COMPLETED') {
       const existing = await this.repository.getCompletion(
-        input.actor.familyId,
+        familyId,
         context.instance.id,
       );
       if (!existing) {
@@ -308,7 +313,7 @@ export class ActivityService {
 
     const completion: CompletionRecord = {
       id: newId<'CompletionRecordId'>() as CompletionRecordId,
-      familyId: input.actor.familyId,
+      familyId: familyId,
       activityInstanceId: context.instance.id,
       occurredAt: input.occurredAt,
       recordedAt,
@@ -326,7 +331,7 @@ export class ActivityService {
 
     await this.repository.appendCompletion(completion);
     const updated = await this.repository.markInstanceCompleted(
-      input.actor.familyId,
+      familyId,
       context.instance.id,
       context.instance.version,
       recordedAt,
@@ -337,7 +342,7 @@ export class ActivityService {
 
     await this.repository.appendDomainEvent({
       id: newId<'DomainEventId'>() as DomainEventId,
-      familyId: input.actor.familyId,
+      familyId: familyId,
       type: 'ActivityCompleted',
       aggregateType: 'ActivityInstance',
       aggregateId: updated.id,
