@@ -22,6 +22,34 @@
       "when": 1791142260000,
       "tag": "0002_devices_and_child_sessions",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1791183600000,
+      "tag": "0003_activity_templates",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1791183660000,
+      "tag": "0004_activities",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1791183720000,
+      "tag": "0005_activity_instances",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1791183780000,
+      "tag": "0006_completion_and_events",
+      "breakpoints": true
     }
   ]
 }
