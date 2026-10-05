@@ -39,9 +39,7 @@ export class InMemoryOfflineCommandStore implements OfflineCommandStore {
   }
 
   async listPendingCommands(actorKey: string): Promise<OfflineCommandRecord[]> {
-    return (await this.listActorCommands(actorKey)).filter(
-      (record) => record.status === 'PENDING',
-    );
+    return (await this.listActorCommands(actorKey)).filter((record) => record.status === 'PENDING');
   }
 
   async recoverSyncing(actorKey: string): Promise<void> {

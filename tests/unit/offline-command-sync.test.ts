@@ -117,26 +117,15 @@ describe('E3 offline command facade', () => {
         scope: scopeA,
         type: 'CompleteActivity',
         occurredAt: '2026-10-05T07:00:00.000Z',
-        expectedVersions: [
-          { resourceType: 'ActivityInstance', resourceId: activityA, version: 1 },
-        ],
+        expectedVersions: [{ resourceType: 'ActivityInstance', resourceId: activityA, version: 1 }],
         payload: { activityInstanceId: activityA },
       },
-      dependencies(
-        store,
-        ['01900000-0000-7000-8000-000000000301'],
-        () => {
-          persistedAtSignal = store.commands.size;
-        },
-      ),
+      dependencies(store, ['01900000-0000-7000-8000-000000000301'], () => {
+        persistedAtSignal = store.commands.size;
+      }),
     );
 
-    const second = await enqueue(
-      store,
-      scopeA,
-      '01900000-0000-7000-8000-000000000302',
-      activityB,
-    );
+    const second = await enqueue(store, scopeA, '01900000-0000-7000-8000-000000000302', activityB);
 
     expect(persistedAtSignal).toBe(1);
     expect(first.clientSequence).toBe(1);
@@ -148,18 +137,8 @@ describe('E3 offline command facade', () => {
   it('keeps sibling command queues isolated even on the same device', async () => {
     const store = new InMemoryOfflineCommandStore();
 
-    await enqueue(
-      store,
-      scopeA,
-      '01900000-0000-7000-8000-000000000303',
-      activityA,
-    );
-    await enqueue(
-      store,
-      scopeB,
-      '01900000-0000-7000-8000-000000000304',
-      activityB,
-    );
+    await enqueue(store, scopeA, '01900000-0000-7000-8000-000000000303', activityA);
+    await enqueue(store, scopeB, '01900000-0000-7000-8000-000000000304', activityB);
 
     expect(await store.listActorCommands(scopeA.actorKey)).toHaveLength(1);
     expect(await store.listActorCommands(scopeB.actorKey)).toHaveLength(1);
