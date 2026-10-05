@@ -27,7 +27,7 @@ export default async function ParentShellPage({ params }: { params: Promise<{ lo
   }
 
   const family = await runtime.repository.getFamily(actor.familyId);
-  const children = family
+  const childProfiles = family
     ? await runtime.repository.listChildSummaries(
         actor.familyId,
         currentDateInTimezone(family.timezone),
@@ -41,7 +41,7 @@ export default async function ParentShellPage({ params }: { params: Promise<{ lo
   });
 
   const pilotChildren = await Promise.all(
-    children.map(async (child) => {
+    childProfiles.map(async (child) => {
       const [assignment, history] = await Promise.all([
         runtime.activityRepository.findActiveAssignmentByTemplate(
           actor.familyId,
@@ -76,9 +76,9 @@ export default async function ParentShellPage({ params }: { params: Promise<{ lo
       <Card className="lo-app-foundation__card" variant="soft">
         <strong>{identityMessages.children}</strong>
         <p>
-          {children.length === 0
+          {childProfiles.length === 0
             ? identityMessages.noChildren
-            : children.map((child) => child.displayName).join(' · ')}
+            : childProfiles.map((child) => child.displayName).join(' · ')}
         </p>
         <form action={`/${locale}`}>
           <Button type="submit">{identityMessages.switchProfile}</Button>
@@ -86,11 +86,11 @@ export default async function ParentShellPage({ params }: { params: Promise<{ lo
       </Card>
 
       <ParentIdentitySetup
-        childProfiles={children.map((child) => ({ id: child.id, displayName: child.displayName }))}
+        childProfiles={childProfiles.map((child) => ({ id: child.id, displayName: child.displayName }))}
         messages={identityMessages}
       />
 
-      <ParentMakeBedPanel children={pilotChildren} messages={activityMessages} />
+      <ParentMakeBedPanel childProfiles={pilotChildren} messages={activityMessages} />
     </main>
   );
 }
