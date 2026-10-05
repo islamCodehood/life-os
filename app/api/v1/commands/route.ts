@@ -1,9 +1,18 @@
 import { NextResponse } from 'next/server';
+import { z } from 'zod';
+import { ActivityService } from '@/src/application/activity/activity-service';
+import { e2CommandSchema } from '@/src/application/activity/e2-command-schema';
+import { AuthorizationService } from '@/src/application/identity/authorization-service';
 import { Argon2PinHasher } from '@/src/infrastructure/auth/argon2-pin-hasher';
 import { e1CommandSchema } from '@/src/application/identity/e1-command-schema';
 import { FamilyIdentityService } from '@/src/application/identity/family-identity-service';
 import { currentDateInTimezone } from '@/src/application/identity/current-date';
-import type { ChildId, DeviceId } from '@/src/domain/shared/id';
+import type {
+  ActivityInstanceId,
+  ChildId,
+  DeviceId,
+} from '@/src/domain/shared/id';
+import { PostgresActivityRepository } from '@/src/infrastructure/activity/postgres-activity-repository';
 import { authCookieNames } from '@/src/infrastructure/auth/cookies';
 import { createIdentityRuntime } from '@/src/infrastructure/composition/identity-runtime';
 import { executeIdempotentCommand } from '@/src/infrastructure/commands/idempotent-command';
@@ -12,35 +21,39 @@ import { AppError } from '@/src/infrastructure/http/errors';
 import { createRequestId } from '@/src/infrastructure/http/request-id';
 import { errorResponse } from '@/src/infrastructure/http/route-error';
 
+const commandSchema = z.union([e1CommandSchema, e2CommandSchema]);
+
 type CommandResponse = {
   commandId: string;
   status: 'ACCEPTED';
   serverTime: string;
   data: unknown;
-  effects: never[];
+  resourceVersions?: Array<{
+    resourceType: string;
+    resourceId: string;
+    version: number;
+  }>;
+  effects: Array<{ type: string }>;
 };
 
 export async function POST(request: Request) {
   const requestId = createRequestId(request.headers.get('x-request-id'));
 
   try {
-    const command = e1CommandSchema.parse(await request.json());
+    const command = commandSchema.parse(await request.json());
     const runtime = await createIdentityRuntime();
     const actor = await runtime.actorResolver.resolve(request);
 
     if (!actor) throw new AppError('AUTH_REQUIRED', 'Authentication is required.');
-    if (actor.kind !== 'GUARDIAN') {
-      throw new AppError('FORBIDDEN', 'Guardian permission is required.');
-    }
 
     const result = await executeIdempotentCommand<CommandResponse, { deviceToken?: string }>({
       commandId: command.commandId,
       command,
       actor,
       execute: async (db) => {
-        const repository = new PostgresIdentityRepository(db);
+        const identityRepository = new PostgresIdentityRepository(db);
         const familyIdentity = new FamilyIdentityService(
-          repository,
+          identityRepository,
           new Argon2PinHasher(),
           runtime.tokens,
           {
@@ -48,13 +61,21 @@ export async function POST(request: Request) {
             maxLength: runtime.env.PIN_MAX_LENGTH,
           },
         );
+        const activityRepository = new PostgresActivityRepository(db);
+        const activities = new ActivityService(
+          activityRepository,
+          identityRepository,
+          new AuthorizationService(identityRepository),
+        );
 
         let data: unknown = null;
+        let resourceVersions: CommandResponse['resourceVersions'];
         let deviceToken: string | undefined;
+        const serverNow = new Date();
 
         switch (command.type) {
           case 'CreateChildProfile': {
-            const family = await repository.getFamily(actor.familyId);
+            const family = await identityRepository.getFamily(actor.familyId);
             if (!family) throw new AppError('RESOURCE_NOT_FOUND', 'Family was not found.');
             data = await familyIdentity.createChild(actor, {
               displayName: command.payload.displayName,
@@ -104,14 +125,67 @@ export async function POST(request: Request) {
               command.payload.pin,
             );
             break;
+          case 'AssignMakeBed': {
+            const assigned = await activities.assignMakeBed(
+              actor,
+              command.payload.childId as ChildId,
+              serverNow,
+            );
+            data = {
+              assignmentId: assigned.assignment.id,
+              instanceId: assigned.instance.id,
+              created: assigned.created,
+            };
+            resourceVersions = [
+              {
+                resourceType: 'ActivityAssignment',
+                resourceId: assigned.assignment.id,
+                version: assigned.assignment.version,
+              },
+              {
+                resourceType: 'ActivityInstance',
+                resourceId: assigned.instance.id,
+                version: assigned.instance.version,
+              },
+            ];
+            break;
+          }
+          case 'CompleteActivity': {
+            const expectedVersion = command.expectedVersions?.find(
+              (entry) =>
+                entry.resourceType === 'ActivityInstance' &&
+                entry.resourceId === command.payload.activityInstanceId,
+            )?.version;
+            const completed = await activities.completeActivity({
+              actor,
+              instanceId: command.payload.activityInstanceId as ActivityInstanceId,
+              occurredAt: new Date(command.occurredAt),
+              recordedAt: serverNow,
+              ...(expectedVersion === undefined ? {} : { expectedVersion }),
+            });
+            data = {
+              activityInstanceId: completed.instance.id,
+              completionId: completed.completion.id,
+              alreadyCompleted: completed.alreadyCompleted,
+            };
+            resourceVersions = [
+              {
+                resourceType: 'ActivityInstance',
+                resourceId: completed.instance.id,
+                version: completed.instance.version,
+              },
+            ];
+            break;
+          }
         }
 
         return {
           response: {
             commandId: command.commandId,
             status: 'ACCEPTED' as const,
-            serverTime: new Date().toISOString(),
+            serverTime: serverNow.toISOString(),
             data,
+            ...(resourceVersions === undefined ? {} : { resourceVersions }),
             effects: [],
           },
           ...(deviceToken === undefined ? {} : { transient: { deviceToken } }),
