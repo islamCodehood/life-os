@@ -7,6 +7,7 @@ import { isLocale } from '@/src/i18n/locales';
 import { currentServerRequest } from '@/src/infrastructure/auth/server-request';
 import { createActivityRuntime } from '@/src/infrastructure/composition/activity-runtime';
 import { ParentMakeBedPanel } from '@/src/ui/activity/ParentMakeBedPanel';
+import { ParentGraduationPanel } from '@/src/ui/graduation/ParentGraduationPanel';
 import { ParentIdentitySetup } from '@/src/ui/identity/ParentIdentitySetup';
 
 export const dynamic = 'force-dynamic';
@@ -42,7 +43,7 @@ export default async function ParentShellPage({ params }: { params: Promise<{ lo
 
   const pilotChildren = await Promise.all(
     childProfiles.map(async (child) => {
-      const [assignment, history, insight] = await Promise.all([
+      const [assignment, history, insight, graduation] = await Promise.all([
         runtime.activityRepository.findActiveAssignmentByTemplate(
           actor.familyId,
           child.id,
@@ -50,18 +51,25 @@ export default async function ParentShellPage({ params }: { params: Promise<{ lo
         ),
         runtime.activities.getParentHistory(actor, child.id),
         runtime.activities.getParentMakeBedInsight(actor, child.id),
+        runtime.graduations.parentOverview(actor, child.id),
       ]);
 
       return {
         id: child.id,
         displayName: child.displayName,
-        assigned: assignment !== null,
+        assigned: graduation !== null,
         ...(assignment ? { activeFrom: assignment.activeFrom } : {}),
         history: history.map((entry) => ({
           id: entry.completion.id,
           label: formatter.format(entry.completion.occurredAt),
           selfInitiated: entry.completion.selfInitiated,
         })),
+        graduation,
+        evidence: insight ? {
+          coverageComplete: insight.metrics.coverageComplete,
+          applicableOpportunities: insight.metrics.applicableOpportunities,
+          recoveryOpen: insight.metrics.recoveryOpen,
+        } : null,
         insight: insight
           ? {
               metrics: insight.metrics,
@@ -109,6 +117,7 @@ export default async function ParentShellPage({ params }: { params: Promise<{ lo
         messages={activityMessages}
         locale={locale}
       />
+      <ParentGraduationPanel children={pilotChildren} messages={activityMessages} />
     </main>
   );
 }
