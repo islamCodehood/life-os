@@ -62,6 +62,7 @@ export interface GraduationRepository {
     approvedBy: GuardianId; approvedAt: Date; monitoringIntervalDays: number;
   }): Promise<GraduationRecord>;
   getActiveGraduation(familyId: FamilyId, assignmentId: ActivityAssignmentId): Promise<GraduationRecord | null>;
+  listChildGraduatedForRecord(familyId: FamilyId, recordId: string): Promise<GraduationRecord | null>;
   listChildGraduated(familyId: FamilyId, childId: ChildId): Promise<Array<{
     record: GraduationRecord; title: string; templateKey: string | null;
   }>>;
