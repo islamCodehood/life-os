@@ -85,6 +85,11 @@ export interface ChildTodayDto {
 export interface ParentMakeBedInsightDto {
   assignmentId: ActivityAssignmentId;
   metrics: ActivityProgressMetrics;
+  unresolved: Array<{
+    id: ActivityInstanceId;
+    version: number;
+    targetAt: string;
+  }>;
 }
 
 function requireGuardian(actor: ActorContext): Extract<ActorContext, { kind: 'GUARDIAN' }> {
@@ -583,6 +588,13 @@ export class ActivityService {
     return {
       assignmentId: assignment.id,
       metrics: calculateActivityProgress(evidence),
+      unresolved: evidence
+        .filter((opportunity) => opportunity.status === 'AWAITING_RESOLUTION')
+        .map((opportunity) => ({
+          id: opportunity.instanceId as ActivityInstanceId,
+          version: opportunity.version,
+          targetAt: opportunity.targetAt.toISOString(),
+        })),
     };
   }
 
