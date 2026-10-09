@@ -227,7 +227,6 @@ export class ActivityService {
   }
 
   async materializeCurrentForAllFamilies(now = new Date()) {
-    const awaitingResolution = await this.repository.markExpiredPendingAwaitingResolution(now);
     const families = await this.repository.listSchedulingFamilies();
     let materialized = 0;
 
@@ -236,6 +235,7 @@ export class ActivityService {
       materialized += (await this.materializeFamilyDate(family.familyId, date)).length;
     }
 
+    const awaitingResolution = await this.repository.markExpiredPendingAwaitingResolution(now);
     return { families: families.length, materialized, awaitingResolution };
   }
 
