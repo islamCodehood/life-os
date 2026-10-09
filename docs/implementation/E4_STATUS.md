@@ -17,7 +17,8 @@ Implemented scope:
 - self-initiation is classified from reminders actually delivered before the real completion `occurredAt`
 - scheduled/attempted reminders are never treated as delivered automatically
 - expired unreported `PENDING` opportunities become `AWAITING_RESOLUTION`, never automatically `MISSED`
-- guardian `MarkActivityMissed` and `ExcuseActivity` resolution commands
+- the first scheduler run after an already-ended window resolves a newly materialized opportunity in the same tick
+- guardian `MarkActivityMissed` and `ExcuseActivity` resolution commands preserve client `occurredAt` while recording server `recordedAt`
 - E3 offline compatibility: a completion that really occurred inside the opportunity window can still replay from `AWAITING_RESOLUTION`
 - transparent Make Bed evidence:
   - consistency
@@ -61,6 +62,7 @@ Acceptance coverage:
 - only delivered external reminders affect self-initiation
 - reminder after completion does not affect the completion classification
 - interrupted/offline completion remains valid after scheduler transition to Awaiting Resolution
+- newly materialized already-expired opportunities do not linger as `PENDING`
 - recovery recognition has no XP behavior
 - reminder migration preserves separate attempted/delivered/acknowledged timestamps
 
