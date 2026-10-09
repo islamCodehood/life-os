@@ -29,7 +29,7 @@ export interface ActivityProgressMetrics {
   recoveryOpen: boolean;
   latestRecoveryLatency: number | null;
   recoveredOnNextOpportunity: boolean;
-  coverageAllowsReadinessEvaluation: boolean;
+  coverageComplete: boolean;
 }
 
 const applicableStatuses = new Set<ActivityInstanceStatus>([
@@ -173,6 +173,6 @@ export function calculateActivityProgress(
     recoveryOpen,
     latestRecoveryLatency,
     recoveredOnNextOpportunity: latestRecoveryLatency === 1,
-    coverageAllowsReadinessEvaluation: applicable.length > 0 && dataCoverage === 1,
+    coverageComplete: applicable.length > 0 && dataCoverage === 1,
   };
 }
