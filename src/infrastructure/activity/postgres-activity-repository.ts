@@ -131,7 +131,8 @@ function assignmentRow(row: typeof schema.activityAssignments.$inferSelect): Act
     familyId: row.familyId as FamilyId,
     childId: row.childId as ChildId,
     activityDefinitionId: row.activityDefinitionId as ActivityDefinitionId,
-    status: row.status === 'ARCHIVED' ? 'ARCHIVED' : row.status === 'GRADUATED' ? 'GRADUATED' : 'ACTIVE',
+    status:
+      row.status === 'ARCHIVED' ? 'ARCHIVED' : row.status === 'GRADUATED' ? 'GRADUATED' : 'ACTIVE',
     scheduleRrule: 'FREQ=DAILY',
     scheduleTimezone: row.scheduleTimezone,
     localTargetTime: row.localTargetTime,
