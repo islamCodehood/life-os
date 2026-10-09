@@ -48,11 +48,7 @@ function formatNumber(value: number | null, locale: 'en' | 'ar') {
   }).format(value);
 }
 
-export function ParentMakeBedPanel({
-  childProfiles,
-  messages,
-  locale,
-}: ParentMakeBedPanelProps) {
+export function ParentMakeBedPanel({ childProfiles, messages, locale }: ParentMakeBedPanelProps) {
   const router = useRouter();
   const [assigningId, setAssigningId] = useState<string | null>(null);
   const [resolvingId, setResolvingId] = useState<string | null>(null);
@@ -168,10 +164,7 @@ export function ParentMakeBedPanel({
                 <div>
                   <dt>{messages.averageReminders}</dt>
                   <dd>
-                    {formatNumber(
-                      child.insight.metrics.averageRemindersPerOpportunity,
-                      locale,
-                    )}
+                    {formatNumber(child.insight.metrics.averageRemindersPerOpportunity, locale)}
                   </dd>
                 </div>
                 <div>
@@ -221,9 +214,7 @@ export function ParentMakeBedPanel({
                             })
                           }
                         >
-                          {resolvingId === entry.id
-                            ? messages.resolving
-                            : messages.markMissed}
+                          {resolvingId === entry.id ? messages.resolving : messages.markMissed}
                         </Button>{' '}
                         <Button
                           type="button"
