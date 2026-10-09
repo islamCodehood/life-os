@@ -12,6 +12,10 @@ const messages = {
     notAvailableYet: 'Available later',
     opportunityClosed: 'This opportunity is no longer open.',
     completionFailed: 'Could not record completion. Try again.',
+    offlineStorageFailed: 'Could not safely save this completion on this device. Try again.',
+    offlineConflict: 'This saved completion needs review before it can finish syncing.',
+    offlineFailed:
+      'This completion is still saved on this device, but the server could not accept it.',
     makeBedSetupTitle: 'Make Bed pilot',
     makeBedSetupIntro:
       'Assign the first self-responsibility. It builds independence and never pays money.',
@@ -35,6 +39,9 @@ const messages = {
     notAvailableYet: 'ستكون متاحة لاحقًا',
     opportunityClosed: 'انتهت فرصة تنفيذ هذه المسؤولية.',
     completionFailed: 'تعذر تسجيل الإنجاز. حاول مرة أخرى.',
+    offlineStorageFailed: 'تعذر حفظ هذا الإنجاز بأمان على الجهاز. حاول مرة أخرى.',
+    offlineConflict: 'هذا الإنجاز المحفوظ يحتاج إلى مراجعة قبل إكمال المزامنة.',
+    offlineFailed: 'الإنجاز ما زال محفوظًا على هذا الجهاز، لكن الخادم لم يتمكن من قبوله.',
     makeBedSetupTitle: 'تجربة ترتيب السرير',
     makeBedSetupIntro:
       'عيّن أول مسؤولية شخصية. الهدف هو بناء الاستقلالية، ولا ينتج عنها أي مقابل مادي.',
