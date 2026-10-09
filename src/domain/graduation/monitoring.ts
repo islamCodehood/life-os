@@ -16,7 +16,8 @@ export function monitoringState(input: {
     sorted.length >= 2 &&
     sorted[0]?.result === 'NEEDS_REGULAR_SUPPORT' &&
     sorted[1]?.result === 'NEEDS_REGULAR_SUPPORT'
-  ) return 'REACTIVATION_REVIEW';
+  )
+    return 'REACTIVATION_REVIEW';
   if (sorted[0] && sorted[0].result !== 'STABLE') return 'WATCH';
 
   const anchor = input.lastObservedAt ?? input.approvedAt;
