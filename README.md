@@ -6,7 +6,7 @@ Life OS is an offline-capable family PWA designed to help children progressively
 
 ## Current status
 
-**Epic 0 — Engineering Foundation**, **Epic 1 — Family Identity + Child-Scoped Sessions**, and **E2 — Make Bed pilot slice** are complete. The current implementation target is **E3 — Offline Completion + Replay**, strictly focused on making the existing Make Bed completion durable and replay-safe without adding new task types or reward behavior.
+**Epic 0 — Engineering Foundation**, **Epic 1 — Family Identity + Child-Scoped Sessions**, **E2 — Make Bed pilot slice**, and **E3 — Offline Completion + Replay** are complete. The current implementation target is **E4 — Reminders, Independence, Coverage, Recovery**, focused on interpreting the existing Make Bed history truthfully without adding autonomy/graduation decisions or XP.
 
 ## Start here
 
@@ -18,6 +18,7 @@ Life OS is an offline-capable family PWA designed to help children progressively
 - `docs/implementation/EPIC_0_PROMPT.md`
 - `docs/implementation/EPIC_1_PROMPT.md`
 - `docs/implementation/EPIC_3_PROMPT.md`
+- `docs/implementation/EPIC_4_PROMPT.md`
 - `docs/handoff/IMPLEMENTATION_HANDOFF.md`
 - `docs/handoff/MAGICPATH_HANDOFF_V3.3.md`
 
