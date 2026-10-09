@@ -13,17 +13,30 @@ export interface ParentGraduationChild {
   id: string;
   displayName: string;
   graduation: Overview | null;
-  evidence: { coverageComplete: boolean; applicableOpportunities: number; recoveryOpen: boolean } | null;
+  evidence: {
+    coverageComplete: boolean;
+    applicableOpportunities: number;
+    recoveryOpen: boolean;
+  } | null;
 }
 
 export function ParentGraduationPanel({
-  children, messages,
-}: { children: ParentGraduationChild[]; messages: ActivityMessages }) {
+  children,
+  messages,
+}: {
+  children: ParentGraduationChild[];
+  messages: ActivityMessages;
+}) {
   const router = useRouter();
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  async function command(childId: string, type: string, payload: Record<string, unknown>, version?: number) {
+  async function command(
+    childId: string,
+    type: string,
+    payload: Record<string, unknown>,
+    version?: number,
+  ) {
     if (busyId) return;
     setBusyId(childId);
     setError(null);
@@ -32,15 +45,22 @@ export function ParentGraduationPanel({
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({
-          commandId: uuidv7(), schemaVersion: 1, type,
+          commandId: uuidv7(),
+          schemaVersion: 1,
+          type,
           occurredAt: new Date().toISOString(),
-          ...(version === undefined ? {} : {
-            expectedVersions: [{
-              resourceType: 'ActivityAssignment',
-              resourceId: children.find((child) => child.id === childId)?.graduation?.assignmentId,
-              version,
-            }],
-          }),
+          ...(version === undefined
+            ? {}
+            : {
+                expectedVersions: [
+                  {
+                    resourceType: 'ActivityAssignment',
+                    resourceId: children.find((child) => child.id === childId)?.graduation
+                      ?.assignmentId,
+                    version,
+                  },
+                ],
+              }),
           payload,
         }),
       });
@@ -62,9 +82,10 @@ export function ParentGraduationPanel({
         const item = child.graduation;
         if (!item) return null;
         const busy = busyId !== null;
-        const eligibleForReview = child.evidence?.coverageComplete === true
-          && (child.evidence?.applicableOpportunities ?? 0) > 0
-          && child.evidence?.recoveryOpen === false;
+        const eligibleForReview =
+          child.evidence?.coverageComplete === true &&
+          (child.evidence?.applicableOpportunities ?? 0) > 0 &&
+          child.evidence?.recoveryOpen === false;
         return (
           <Card className="lo-app-foundation__card" variant="soft" key={child.id}>
             <h3>{child.displayName}</h3>
@@ -74,59 +95,148 @@ export function ParentGraduationPanel({
                 {!item.suggestionId ? (
                   <>
                     <p>{messages.reviewCaution}</p>
-                    <Button type="button" disabled={busy || !eligibleForReview} onClick={() => void command(
-                      child.id, 'RequestGraduationReview', { assignmentId: item.assignmentId },
-                    )}>{messages.requestGraduationReview}</Button>
+                    <Button
+                      type="button"
+                      disabled={busy || !eligibleForReview}
+                      onClick={() =>
+                        void command(child.id, 'RequestGraduationReview', {
+                          assignmentId: item.assignmentId,
+                        })
+                      }
+                    >
+                      {messages.requestGraduationReview}
+                    </Button>
                   </>
                 ) : (
                   <>
                     <p>{messages.guardianReviewPending}</p>
-                    <Button type="button" disabled={busy} onClick={() => void command(
-                      child.id, 'ApproveGraduation', { suggestionId: item.suggestionId, monitoringIntervalDays: 14 }, item.assignmentVersion,
-                    )}>{messages.approveGraduation}</Button>{' '}
-                    <Button type="button" disabled={busy} onClick={() => void command(
-                      child.id, 'DeclineGraduation', { suggestionId: item.suggestionId },
-                    )}>{messages.decline}</Button>{' '}
-                    <Button type="button" disabled={busy} onClick={() => void command(
-                      child.id, 'SnoozeGraduation', { suggestionId: item.suggestionId },
-                    )}>{messages.snooze}</Button>
+                    <Button
+                      type="button"
+                      disabled={busy}
+                      onClick={() =>
+                        void command(
+                          child.id,
+                          'ApproveGraduation',
+                          { suggestionId: item.suggestionId, monitoringIntervalDays: 14 },
+                          item.assignmentVersion,
+                        )
+                      }
+                    >
+                      {messages.approveGraduation}
+                    </Button>{' '}
+                    <Button
+                      type="button"
+                      disabled={busy}
+                      onClick={() =>
+                        void command(child.id, 'DeclineGraduation', {
+                          suggestionId: item.suggestionId,
+                        })
+                      }
+                    >
+                      {messages.decline}
+                    </Button>{' '}
+                    <Button
+                      type="button"
+                      disabled={busy}
+                      onClick={() =>
+                        void command(child.id, 'SnoozeGraduation', {
+                          suggestionId: item.suggestionId,
+                        })
+                      }
+                    >
+                      {messages.snooze}
+                    </Button>
                   </>
                 )}
               </>
             ) : (
               <>
-                <p>{messages.graduatedMonitoring} · {item.monitoringIntervalDays} {messages.monitoringDays}</p>
-                <p>{messages.monitoringStatus}: {item.monitoringState === 'STABLE'
-                  ? messages.monitoringStable : item.monitoringState === 'OVERDUE'
-                    ? messages.monitoringOverdue : item.monitoringState === 'WATCH'
-                      ? messages.monitoringWatch : messages.monitoringReview}</p>
-                <p>{messages.observationCount}: {item.observationCount}</p>
+                <p>
+                  {messages.graduatedMonitoring} · {item.monitoringIntervalDays}{' '}
+                  {messages.monitoringDays}
+                </p>
+                <p>
+                  {messages.monitoringStatus}:{' '}
+                  {item.monitoringState === 'STABLE'
+                    ? messages.monitoringStable
+                    : item.monitoringState === 'OVERDUE'
+                      ? messages.monitoringOverdue
+                      : item.monitoringState === 'WATCH'
+                        ? messages.monitoringWatch
+                        : messages.monitoringReview}
+                </p>
+                <p>
+                  {messages.observationCount}: {item.observationCount}
+                </p>
                 {item.graduationRecordId && (
                   <div>
                     <p>{messages.recordObservation}</p>
-                    <Button type="button" disabled={busy} onClick={() => void command(
-                      child.id, 'RecordGraduatedObservation',
-                      { graduationRecordId: item.graduationRecordId, result: 'STABLE' },
-                    )}>{messages.observationStable}</Button>{' '}
-                    <Button type="button" disabled={busy} onClick={() => void command(
-                      child.id, 'RecordGraduatedObservation',
-                      { graduationRecordId: item.graduationRecordId, result: 'SOMETIMES_NEEDS_HELP' },
-                    )}>{messages.observationSomeHelp}</Button>{' '}
-                    <Button type="button" disabled={busy} onClick={() => void command(
-                      child.id, 'RecordGraduatedObservation',
-                      { graduationRecordId: item.graduationRecordId, result: 'NEEDS_REGULAR_SUPPORT' },
-                    )}>{messages.observationRegularSupport}</Button>
+                    <Button
+                      type="button"
+                      disabled={busy}
+                      onClick={() =>
+                        void command(child.id, 'RecordGraduatedObservation', {
+                          graduationRecordId: item.graduationRecordId,
+                          result: 'STABLE',
+                        })
+                      }
+                    >
+                      {messages.observationStable}
+                    </Button>{' '}
+                    <Button
+                      type="button"
+                      disabled={busy}
+                      onClick={() =>
+                        void command(child.id, 'RecordGraduatedObservation', {
+                          graduationRecordId: item.graduationRecordId,
+                          result: 'SOMETIMES_NEEDS_HELP',
+                        })
+                      }
+                    >
+                      {messages.observationSomeHelp}
+                    </Button>{' '}
+                    <Button
+                      type="button"
+                      disabled={busy}
+                      onClick={() =>
+                        void command(child.id, 'RecordGraduatedObservation', {
+                          graduationRecordId: item.graduationRecordId,
+                          result: 'NEEDS_REGULAR_SUPPORT',
+                        })
+                      }
+                    >
+                      {messages.observationRegularSupport}
+                    </Button>
                   </div>
                 )}
                 {item.suggestionId && item.suggestionKind === 'REACTIVATION' && (
                   <div>
                     <p>{messages.reactivationReview}</p>
-                    <Button type="button" disabled={busy} onClick={() => void command(
-                      child.id, 'ApproveReactivation', { suggestionId: item.suggestionId }, item.assignmentVersion,
-                    )}>{messages.approveReactivation}</Button>{' '}
-                    <Button type="button" disabled={busy} onClick={() => void command(
-                      child.id, 'DeclineReactivation', { suggestionId: item.suggestionId },
-                    )}>{messages.decline}</Button>
+                    <Button
+                      type="button"
+                      disabled={busy}
+                      onClick={() =>
+                        void command(
+                          child.id,
+                          'ApproveReactivation',
+                          { suggestionId: item.suggestionId },
+                          item.assignmentVersion,
+                        )
+                      }
+                    >
+                      {messages.approveReactivation}
+                    </Button>{' '}
+                    <Button
+                      type="button"
+                      disabled={busy}
+                      onClick={() =>
+                        void command(child.id, 'DeclineReactivation', {
+                          suggestionId: item.suggestionId,
+                        })
+                      }
+                    >
+                      {messages.decline}
+                    </Button>
                   </div>
                 )}
               </>
