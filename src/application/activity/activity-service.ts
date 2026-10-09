@@ -428,11 +428,13 @@ export class ActivityService {
   async markActivityMissed(input: {
     actor: ActorContext;
     instanceId: ActivityInstanceId;
+    occurredAt?: Date;
     recordedAt?: Date;
     expectedVersion?: number;
   }) {
     const guardian = requireGuardian(input.actor);
     const recordedAt = input.recordedAt ?? new Date();
+    const occurredAt = input.occurredAt ?? recordedAt;
     const context = await this.repository.getInstanceForUpdate(guardian.familyId, input.instanceId);
 
     if (
@@ -469,7 +471,7 @@ export class ActivityService {
       type: 'ActivityMissed',
       aggregateType: 'ActivityInstance',
       aggregateId: updated.id,
-      occurredAt: recordedAt,
+      occurredAt,
       recordedAt,
       payload: {
         activityInstanceId: updated.id,
@@ -483,11 +485,13 @@ export class ActivityService {
   async excuseActivity(input: {
     actor: ActorContext;
     instanceId: ActivityInstanceId;
+    occurredAt?: Date;
     recordedAt?: Date;
     expectedVersion?: number;
   }) {
     const guardian = requireGuardian(input.actor);
     const recordedAt = input.recordedAt ?? new Date();
+    const occurredAt = input.occurredAt ?? recordedAt;
     const context = await this.repository.getInstanceForUpdate(guardian.familyId, input.instanceId);
 
     if (
@@ -527,7 +531,7 @@ export class ActivityService {
       type: 'ActivityExcused',
       aggregateType: 'ActivityInstance',
       aggregateId: updated.id,
-      occurredAt: recordedAt,
+      occurredAt,
       recordedAt,
       payload: {
         activityInstanceId: updated.id,
