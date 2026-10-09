@@ -51,9 +51,11 @@ const messages = {
     resolving: 'Saving…',
     resolutionFailed: 'Could not resolve this opportunity. Refresh and try again.',
     graduationTitle: 'Graduation and independence',
-    graduationIntro: 'Graduation transfers responsibility back to real life, with light parent monitoring.',
+    graduationIntro:
+      'Graduation transfers responsibility back to real life, with light parent monitoring.',
     activeTracking: 'Daily tracking is active.',
-    reviewCaution: 'This requests guardian review of the evidence; it is not an automated readiness verdict.',
+    reviewCaution:
+      'This requests guardian review of the evidence; it is not an automated readiness verdict.',
     requestGraduationReview: 'Review for graduation',
     guardianReviewPending: 'Guardian graduation review is ready for your decision.',
     approveGraduation: 'Approve graduation',
@@ -71,13 +73,14 @@ const messages = {
     observationStable: 'Stable',
     observationSomeHelp: 'Sometimes needs help',
     observationRegularSupport: 'Needs regular support',
-    reactivationReview: 'Repeated concerns suggest reviewing guided support again. No automatic change is made.',
+    reactivationReview:
+      'Repeated concerns suggest reviewing guided support again. No automatic change is made.',
     approveReactivation: 'Return to guided routine',
     graduationFailed: 'Could not save this graduation decision. Refresh and try again.',
     selfManagedTitle: 'I Manage These Myself',
     selfManagedIntro: 'These responsibilities are yours now — no daily check-in is required.',
-    graduationCelebration: 'You have grown more independent! Keep taking care of this in real life.',
-
+    graduationCelebration:
+      'You have grown more independent! Keep taking care of this in real life.',
   },
   ar: {
     todayTitle: 'اليوم',
@@ -154,7 +157,6 @@ const messages = {
     selfManagedTitle: 'أنا أدير هذه الأمور بنفسي',
     selfManagedIntro: 'هذه مسؤولياتك الآن، ولا تحتاج إلى تسجيل إنجاز يومي.',
     graduationCelebration: 'أصبحت أكثر استقلالية! استمر في الاعتناء بهذه المسؤولية في حياتك.',
-
   },
 } as const;
 

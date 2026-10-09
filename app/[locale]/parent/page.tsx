@@ -65,11 +65,13 @@ export default async function ParentShellPage({ params }: { params: Promise<{ lo
           selfInitiated: entry.completion.selfInitiated,
         })),
         graduation,
-        evidence: insight ? {
-          coverageComplete: insight.metrics.coverageComplete,
-          applicableOpportunities: insight.metrics.applicableOpportunities,
-          recoveryOpen: insight.metrics.recoveryOpen,
-        } : null,
+        evidence: insight
+          ? {
+              coverageComplete: insight.metrics.coverageComplete,
+              applicableOpportunities: insight.metrics.applicableOpportunities,
+              recoveryOpen: insight.metrics.recoveryOpen,
+            }
+          : null,
         insight: insight
           ? {
               metrics: insight.metrics,
