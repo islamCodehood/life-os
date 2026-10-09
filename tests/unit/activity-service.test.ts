@@ -570,6 +570,28 @@ describe('ActivityService Make Bed pilot', () => {
     });
   });
 
+  it('resolves an opportunity materialized for the first time after its window already ended', async () => {
+    const f = fixture();
+    await f.service.assignMakeBed(
+      f.guardian,
+      f.childId,
+      new Date('2026-10-05T02:00:00.000Z'),
+    );
+
+    const result = await f.service.materializeCurrentForAllFamilies(
+      new Date('2026-10-06T11:00:00.000Z'),
+    );
+
+    const dayTwo = [...f.activities.instances.values()].find(
+      (instance) => instance.targetAt.toISOString() === '2026-10-06T07:00:00.000Z',
+    );
+    expect(dayTwo).toMatchObject({
+      status: 'AWAITING_RESOLUTION',
+      version: 2,
+    });
+    expect(result.awaitingResolution).toBeGreaterThanOrEqual(1);
+  });
+
   it('accepts an offline completion after the scheduler moved the opportunity to awaiting resolution', async () => {
     const f = fixture();
     const assigned = await f.service.assignMakeBed(
