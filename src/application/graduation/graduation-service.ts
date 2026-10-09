@@ -145,7 +145,7 @@ export class GraduationService {
     actor: ActorContext;
     suggestionId: string;
     decision: 'APPROVE' | 'DECLINE' | 'SNOOZE';
-    expectedVersion?: number;
+    expectedVersion?: number | undefined;
     monitoringIntervalDays?: number;
     occurredAt: Date;
     now?: Date;
@@ -314,7 +314,7 @@ export class GraduationService {
     actor: ActorContext;
     suggestionId: string;
     decision: 'APPROVE' | 'DECLINE';
-    expectedVersion?: number;
+    expectedVersion?: number | undefined;
     occurredAt: Date;
     now?: Date;
   }) {
