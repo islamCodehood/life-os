@@ -6,15 +6,29 @@ import type {
   CompletionRecordId,
   FamilyId,
   GuardianId,
+  ReminderRecordId,
 } from '@/src/domain/shared/id';
 
 export type ActivityTemplateKey = 'SELF_MAKE_BED';
 
 export type ActivityCategory =
-  'SELF_RESPONSIBILITY' | 'FAMILY_RESPONSIBILITY' | 'GROWTH' | 'VALUES' | 'FAITH';
+  | 'SELF_RESPONSIBILITY'
+  | 'FAMILY_RESPONSIBILITY'
+  | 'GROWTH'
+  | 'VALUES'
+  | 'FAITH';
 
 export type ActivityInstanceStatus =
-  'PENDING' | 'COMPLETED' | 'AWAITING_RESOLUTION' | 'MISSED' | 'EXCUSED' | 'NOT_APPLICABLE';
+  | 'PENDING'
+  | 'COMPLETED'
+  | 'AWAITING_RESOLUTION'
+  | 'MISSED'
+  | 'EXCUSED'
+  | 'NOT_APPLICABLE';
+
+export interface ActivityReminderPolicy {
+  systemReminderOffsetMinutes: number | null;
+}
 
 export interface ActivityTemplate {
   key: ActivityTemplateKey;
@@ -63,7 +77,7 @@ export interface ActivityAssignment {
   progressMode: string;
   xpMode: string;
   xpAmount: number | null;
-  reminderPolicy: Record<string, unknown>;
+  reminderPolicy: ActivityReminderPolicy;
   activeFrom: string;
   activeUntil: string | null;
   version: number;
@@ -93,6 +107,21 @@ export interface CompletionRecord {
   selfInitiated: boolean;
   reminderCountAtCompletion: number;
   source: 'CHILD_SELF' | 'GUARDIAN';
+}
+
+export type ReminderSource = 'SYSTEM' | 'GUARDIAN' | 'CHILD';
+export type ReminderKind = 'ACTIVITY';
+
+export interface ReminderRecord {
+  id: ReminderRecordId;
+  familyId: FamilyId;
+  activityInstanceId: ActivityInstanceId;
+  source: ReminderSource;
+  kind: ReminderKind;
+  scheduledFor: Date;
+  attemptedAt: Date | null;
+  deliveredAt: Date | null;
+  acknowledgedAt: Date | null;
 }
 
 export interface ActivityInstanceContext {
