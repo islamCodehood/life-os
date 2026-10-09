@@ -98,6 +98,30 @@ describe('E4 reminder evidence', () => {
     });
   });
 
+  it('does not infer reminder delivery from an attempted reminder', () => {
+    const occurredAt = new Date('2026-10-05T07:00:00.000Z');
+    const attemptedOnly = reminder({
+      id: '01900000-0000-7000-8000-000000000204',
+      instanceId: '01900000-0000-7000-8000-000000000304',
+      source: 'SYSTEM',
+      scheduledFor: '2026-10-05T06:45:00.000Z',
+      deliveredAt: null,
+    });
+    attemptedOnly.attemptedAt = new Date('2026-10-05T06:45:00.000Z');
+
+    expect(
+      classifyCompletionReminderEvidence({
+        reporter: 'CHILD',
+        occurredAt,
+        reminders: [attemptedOnly],
+      }),
+    ).toEqual({
+      reminderCountAtCompletion: 0,
+      externalReminderCountAtCompletion: 0,
+      selfInitiated: true,
+    });
+  });
+
   it('marks a child completion externally prompted only when an external reminder was delivered first', () => {
     const occurredAt = new Date('2026-10-05T07:00:00.000Z');
     const evidence = classifyCompletionReminderEvidence({
