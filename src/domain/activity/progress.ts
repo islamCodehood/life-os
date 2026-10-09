@@ -1,8 +1,4 @@
-import type {
-  ActivityInstanceStatus,
-  CompletionRecord,
-  ReminderRecord,
-} from './entities';
+import type { ActivityInstanceStatus, CompletionRecord, ReminderRecord } from './entities';
 import { deliveredRemindersBefore, isExternalReminderSource } from './reminder';
 
 export interface ActivityOpportunityEvidence {
@@ -48,9 +44,7 @@ function ratio(numerator: number, denominator: number): number | null {
 function sortedEvidence(
   evidence: readonly ActivityOpportunityEvidence[],
 ): ActivityOpportunityEvidence[] {
-  return [...evidence].sort(
-    (left, right) => left.targetAt.getTime() - right.targetAt.getTime(),
-  );
+  return [...evidence].sort((left, right) => left.targetAt.getTime() - right.targetAt.getTime());
 }
 
 function isApplicable(opportunity: ActivityOpportunityEvidence): boolean {
@@ -102,8 +96,7 @@ export function calculateActivityProgress(
   const ordered = sortedEvidence(evidence);
   const applicable = ordered.filter(isApplicable);
   const resolved = applicable.filter(
-    (opportunity) =>
-      opportunity.status === 'COMPLETED' || opportunity.status === 'MISSED',
+    (opportunity) => opportunity.status === 'COMPLETED' || opportunity.status === 'MISSED',
   );
   const completed = applicable.filter((opportunity) => opportunity.status === 'COMPLETED');
   const missed = applicable.filter((opportunity) => opportunity.status === 'MISSED');
@@ -111,9 +104,7 @@ export function calculateActivityProgress(
     (opportunity) => opportunity.status === 'AWAITING_RESOLUTION',
   );
   const excused = ordered.filter((opportunity) => opportunity.status === 'EXCUSED');
-  const notApplicable = ordered.filter(
-    (opportunity) => opportunity.status === 'NOT_APPLICABLE',
-  );
+  const notApplicable = ordered.filter((opportunity) => opportunity.status === 'NOT_APPLICABLE');
 
   const selfInitiated = completed.filter(
     (opportunity) => opportunity.completion?.selfInitiated === true,
@@ -121,10 +112,9 @@ export function calculateActivityProgress(
 
   const externallyPrompted = completed.filter((opportunity) => {
     if (!opportunity.completion) return false;
-    return deliveredRemindersBefore(
-      opportunity.reminders,
-      opportunity.completion.occurredAt,
-    ).some((reminder) => isExternalReminderSource(reminder.source));
+    return deliveredRemindersBefore(opportunity.reminders, opportunity.completion.occurredAt).some(
+      (reminder) => isExternalReminderSource(reminder.source),
+    );
   }).length;
 
   const deliveredReminderCount = applicable.reduce(
@@ -134,8 +124,7 @@ export function calculateActivityProgress(
 
   const onTime = completed.filter(
     (opportunity) =>
-      opportunity.completion !== null &&
-      opportunity.completion.occurredAt <= opportunity.targetAt,
+      opportunity.completion !== null && opportunity.completion.occurredAt <= opportunity.targetAt,
   ).length;
 
   let recoveryOpen = false;
@@ -183,7 +172,6 @@ export function calculateActivityProgress(
     recoveryOpen,
     latestRecoveryLatency,
     recoveredOnNextOpportunity: latestRecoveryLatency === 1,
-    coverageAllowsReadinessEvaluation:
-      applicable.length > 0 && dataCoverage === 1,
+    coverageAllowsReadinessEvaluation: applicable.length > 0 && dataCoverage === 1,
   };
 }

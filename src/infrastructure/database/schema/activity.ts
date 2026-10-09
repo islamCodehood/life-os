@@ -166,7 +166,6 @@ export const completionRecords = lifeOsSchema.table(
   ],
 );
 
-
 export const reminderRecords = lifeOsSchema.table(
   'reminder_records',
   {
@@ -190,10 +189,7 @@ export const reminderRecords = lifeOsSchema.table(
       table.kind,
       table.scheduledFor,
     ),
-    index('reminder_records_family_instance_idx').on(
-      table.familyId,
-      table.activityInstanceId,
-    ),
+    index('reminder_records_family_instance_idx').on(table.familyId, table.activityInstanceId),
     foreignKey({
       columns: [table.activityInstanceId, table.familyId],
       foreignColumns: [activityInstances.id, activityInstances.familyId],
