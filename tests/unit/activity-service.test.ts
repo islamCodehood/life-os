@@ -11,9 +11,11 @@ import type {
   ActivityHistoryItem,
   ActivityInstance,
   ActivityInstanceContext,
+  ActivityInstanceStatus,
   ActivityTemplate,
   ActivityTemplateKey,
   CompletionRecord,
+  ReminderRecord,
 } from '@/src/domain/activity/entities';
 import type {
   ActivityInstanceId,
@@ -47,6 +49,7 @@ class InMemoryActivityRepository implements ActivityRepository {
   assignments = new Map<string, ActivityAssignment>();
   instances = new Map<string, ActivityInstance>();
   completions = new Map<ActivityInstanceId, CompletionRecord>();
+  reminders = new Map<ActivityInstanceId, ReminderRecord[]>();
   events: Array<{
     id: DomainEventId;
     familyId: FamilyId;
@@ -156,19 +159,102 @@ class InMemoryActivityRepository implements ActivityRepository {
     familyId: FamilyId,
     instanceId: ActivityInstanceId,
     expectedVersion: number,
+    _updatedAt: Date,
+    allowedStatuses: ActivityInstanceStatus[] = ['PENDING'],
   ) {
     const instance = this.instances.get(instanceId);
     if (
       !instance ||
       instance.familyId !== familyId ||
       instance.version !== expectedVersion ||
-      instance.status !== 'PENDING'
+      !allowedStatuses.includes(instance.status)
     ) {
       return null;
     }
     const updated = { ...instance, status: 'COMPLETED' as const, version: instance.version + 1 };
     this.instances.set(instanceId, updated);
     return updated;
+  }
+
+  async updateInstanceStatus(
+    familyId: FamilyId,
+    instanceId: ActivityInstanceId,
+    expectedVersion: number,
+    allowedStatuses: ActivityInstanceStatus[],
+    status: ActivityInstanceStatus,
+    _updatedAt: Date,
+  ) {
+    const instance = this.instances.get(instanceId);
+    if (
+      !instance ||
+      instance.familyId !== familyId ||
+      instance.version !== expectedVersion ||
+      !allowedStatuses.includes(instance.status)
+    ) {
+      return null;
+    }
+    const updated = { ...instance, status, version: instance.version + 1 };
+    this.instances.set(instanceId, updated);
+    return updated;
+  }
+
+  async markExpiredPendingAwaitingResolution(now: Date) {
+    let updatedCount = 0;
+    for (const [id, instance] of this.instances) {
+      if (instance.status === 'PENDING' && instance.opportunityEndsAt <= now) {
+        this.instances.set(id, {
+          ...instance,
+          status: 'AWAITING_RESOLUTION',
+          version: instance.version + 1,
+        });
+        updatedCount += 1;
+      }
+    }
+    return updatedCount;
+  }
+
+  async ensureReminder(record: ReminderRecord) {
+    const records = this.reminders.get(record.activityInstanceId) ?? [];
+    const existing = records.find(
+      (candidate) =>
+        candidate.source === record.source &&
+        candidate.kind === record.kind &&
+        candidate.scheduledFor.getTime() === record.scheduledFor.getTime(),
+    );
+    if (existing) return existing;
+    records.push(record);
+    this.reminders.set(record.activityInstanceId, records);
+    return record;
+  }
+
+  async listRemindersForInstance(familyId: FamilyId, instanceId: ActivityInstanceId) {
+    return (this.reminders.get(instanceId) ?? []).filter(
+      (reminder) => reminder.familyId === familyId,
+    );
+  }
+
+  async listProgressEvidence(
+    familyId: FamilyId,
+    assignmentId: ActivityAssignment['id'],
+    through: Date,
+  ) {
+    return [...this.instances.values()]
+      .filter(
+        (instance) =>
+          instance.familyId === familyId &&
+          instance.assignmentId === assignmentId &&
+          (instance.opportunityEndsAt <= through || instance.status !== 'PENDING'),
+      )
+      .sort((left, right) => left.targetAt.getTime() - right.targetAt.getTime())
+      .map((instance) => ({
+        instanceId: instance.id,
+        version: instance.version,
+        status: instance.status,
+        targetAt: instance.targetAt,
+        opportunityEndsAt: instance.opportunityEndsAt,
+        completion: this.completions.get(instance.id) ?? null,
+        reminders: this.reminders.get(instance.id) ?? [],
+      }));
   }
 
   async appendDomainEvent(input: {
