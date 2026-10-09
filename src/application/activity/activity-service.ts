@@ -366,10 +366,7 @@ export class ActivityService {
       );
     }
 
-    const reminders = await this.repository.listRemindersForInstance(
-      familyId,
-      context.instance.id,
-    );
+    const reminders = await this.repository.listRemindersForInstance(familyId, context.instance.id);
     const reporter = input.actor.kind === 'CHILD' ? 'CHILD' : 'GUARDIAN';
     const reminderEvidence = classifyCompletionReminderEvidence({
       reporter,
@@ -421,8 +418,7 @@ export class ActivityService {
         source: completion.source,
         selfInitiated: completion.selfInitiated,
         reminderCountAtCompletion: completion.reminderCountAtCompletion,
-        externalReminderCountAtCompletion:
-          reminderEvidence.externalReminderCountAtCompletion,
+        externalReminderCountAtCompletion: reminderEvidence.externalReminderCountAtCompletion,
       },
     });
 
@@ -437,10 +433,7 @@ export class ActivityService {
   }) {
     const guardian = requireGuardian(input.actor);
     const recordedAt = input.recordedAt ?? new Date();
-    const context = await this.repository.getInstanceForUpdate(
-      guardian.familyId,
-      input.instanceId,
-    );
+    const context = await this.repository.getInstanceForUpdate(guardian.familyId, input.instanceId);
 
     if (
       !context ||
@@ -454,10 +447,7 @@ export class ActivityService {
         'Only an unresolved activity opportunity can be confirmed missed.',
       );
     }
-    if (
-      input.expectedVersion !== undefined &&
-      input.expectedVersion !== context.instance.version
-    ) {
+    if (input.expectedVersion !== undefined && input.expectedVersion !== context.instance.version) {
       throw new ActivityDomainError('STALE_VERSION', 'This activity changed on another device.');
     }
 
@@ -498,10 +488,7 @@ export class ActivityService {
   }) {
     const guardian = requireGuardian(input.actor);
     const recordedAt = input.recordedAt ?? new Date();
-    const context = await this.repository.getInstanceForUpdate(
-      guardian.familyId,
-      input.instanceId,
-    );
+    const context = await this.repository.getInstanceForUpdate(guardian.familyId, input.instanceId);
 
     if (
       !context ||
@@ -518,10 +505,7 @@ export class ActivityService {
         'This activity opportunity can no longer be excused.',
       );
     }
-    if (
-      input.expectedVersion !== undefined &&
-      input.expectedVersion !== context.instance.version
-    ) {
+    if (input.expectedVersion !== undefined && input.expectedVersion !== context.instance.version) {
       throw new ActivityDomainError('STALE_VERSION', 'This activity changed on another device.');
     }
 
@@ -617,10 +601,7 @@ export class ActivityService {
       version: 1,
     });
 
-    const scheduledFor = scheduledSystemReminderAt(
-      instance.targetAt,
-      assignment.reminderPolicy,
-    );
+    const scheduledFor = scheduledSystemReminderAt(instance.targetAt, assignment.reminderPolicy);
     if (scheduledFor) {
       const reminder: ReminderRecord = {
         id: newId<'ReminderRecordId'>() as ReminderRecordId,
