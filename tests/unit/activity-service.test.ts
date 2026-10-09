@@ -572,11 +572,7 @@ describe('ActivityService Make Bed pilot', () => {
 
   it('resolves an opportunity materialized for the first time after its window already ended', async () => {
     const f = fixture();
-    await f.service.assignMakeBed(
-      f.guardian,
-      f.childId,
-      new Date('2026-10-05T02:00:00.000Z'),
-    );
+    await f.service.assignMakeBed(f.guardian, f.childId, new Date('2026-10-05T02:00:00.000Z'));
 
     const result = await f.service.materializeCurrentForAllFamilies(
       new Date('2026-10-06T11:00:00.000Z'),
