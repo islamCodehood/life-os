@@ -236,6 +236,36 @@ export class PostgresActivityRepository implements ActivityRepository {
     return row ? assignmentRow(row.assignment) : null;
   }
 
+  async findAssignedByTemplate(
+    familyId: FamilyId,
+    childId: ChildId,
+    key: ActivityTemplateKey,
+  ) {
+    const [row] = await this.db
+      .select({ assignment: schema.activityAssignments })
+      .from(schema.activityAssignments)
+      .innerJoin(
+        schema.activityDefinitions,
+        and(
+          eq(schema.activityDefinitions.id, schema.activityAssignments.activityDefinitionId),
+          eq(schema.activityDefinitions.familyId, schema.activityAssignments.familyId),
+        ),
+      )
+      .where(
+        and(
+          eq(schema.activityAssignments.familyId, familyId),
+          eq(schema.activityAssignments.childId, childId),
+          sql`${schema.activityAssignments.status} IN ('ACTIVE', 'GRADUATED')`,
+          isNull(schema.activityAssignments.archivedAt),
+          eq(schema.activityDefinitions.templateKey, key),
+          isNull(schema.activityDefinitions.archivedAt),
+        ),
+      )
+      .limit(1);
+
+    return row ? assignmentRow(row.assignment) : null;
+  }
+
   async createDefinition(definition: ActivityDefinition) {
     const [row] = await this.db
       .insert(schema.activityDefinitions)

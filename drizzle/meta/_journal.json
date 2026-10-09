@@ -57,6 +57,13 @@
       "when": 1791540000000,
       "tag": "0007_activity_reminders",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1791562000000,
+      "tag": "0008_graduation",
+      "breakpoints": true
     }
   ]
 }

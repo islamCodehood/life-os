@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { ZodError } from 'zod';
 import { ActivityDomainError } from '@/src/application/activity/activity-service';
+import { GraduationDomainError } from '@/src/application/graduation/graduation-service';
 import { GuardianAuthenticationError } from '@/src/application/auth/guardian-auth-gateway';
 import { IdentityDomainError } from '@/src/application/identity/family-identity-service';
 import { AppError, toApiError } from './errors';
@@ -8,7 +9,7 @@ import { AppError, toApiError } from './errors';
 export function errorResponse(error: unknown, requestId: string) {
   let mapped = error;
 
-  if (error instanceof ActivityDomainError || error instanceof IdentityDomainError) {
+  if (error instanceof ActivityDomainError || error instanceof GraduationDomainError || error instanceof IdentityDomainError) {
     mapped = new AppError(error.code, error.message);
   } else if (error instanceof GuardianAuthenticationError) {
     mapped = new AppError('AUTH_REQUIRED', 'Guardian authentication failed.');
