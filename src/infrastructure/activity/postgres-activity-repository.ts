@@ -1,4 +1,15 @@
-import { and, desc, eq, gte, isNull, lt, sql } from 'drizzle-orm';
+import {
+  and,
+  desc,
+  eq,
+  gte,
+  inArray,
+  isNull,
+  lt,
+  lte,
+  or,
+  sql,
+} from 'drizzle-orm';
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import type { ActivityRepository } from '@/src/application/activity/activity-repository';
 import type {
@@ -8,10 +19,15 @@ import type {
   ActivityHistoryItem,
   ActivityInstance,
   ActivityInstanceStatus,
+  ActivityReminderPolicy,
   ActivityTemplate,
   ActivityTemplateKey,
   CompletionRecord,
+  ReminderKind,
+  ReminderRecord,
+  ReminderSource,
 } from '@/src/domain/activity/entities';
+import type { ActivityOpportunityEvidence } from '@/src/domain/activity/progress';
 import type {
   ActivityAssignmentId,
   ActivityDefinitionId,
@@ -20,6 +36,7 @@ import type {
   CompletionRecordId,
   FamilyId,
   GuardianId,
+  ReminderRecordId,
 } from '@/src/domain/shared/id';
 import * as schema from '@/src/infrastructure/database/schema';
 
@@ -58,15 +75,30 @@ function instanceStatus(value: string): ActivityInstanceStatus {
   throw new Error(`Unsupported activity instance status: ${value}`);
 }
 
-function reminderPolicy(value: unknown): Record<string, unknown> {
-  return value !== null && typeof value === 'object' && !Array.isArray(value)
-    ? (value as Record<string, unknown>)
-    : {};
+function reminderSource(value: string): ReminderSource {
+  if (value === 'SYSTEM' || value === 'GUARDIAN' || value === 'CHILD') return value;
+  throw new Error(`Unsupported reminder source: ${value}`);
+}
+
+function reminderKind(value: string): ReminderKind {
+  if (value === 'ACTIVITY') return value;
+  throw new Error(`Unsupported reminder kind: ${value}`);
+}
+
+function reminderPolicy(value: unknown): ActivityReminderPolicy {
+  if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
+    const offset = (value as Record<string, unknown>).systemReminderOffsetMinutes;
+    if (offset === null) return { systemReminderOffsetMinutes: null };
+    if (typeof offset === 'number' && Number.isInteger(offset)) {
+      return { systemReminderOffsetMinutes: offset };
+    }
+  }
+  return { systemReminderOffsetMinutes: null };
 }
 
 function templateRow(row: typeof schema.activityTemplates.$inferSelect): ActivityTemplate {
   if (row.defaultScheduleRrule !== 'FREQ=DAILY') {
-    throw new Error(`Unsupported E2 schedule: ${row.defaultScheduleRrule}`);
+    throw new Error(`Unsupported activity schedule: ${row.defaultScheduleRrule}`);
   }
   return {
     key: templateKey(row.key) ?? 'SELF_MAKE_BED',
@@ -103,7 +135,7 @@ function definitionRow(row: typeof schema.activityDefinitions.$inferSelect): Act
 
 function assignmentRow(row: typeof schema.activityAssignments.$inferSelect): ActivityAssignment {
   if (row.scheduleRrule !== 'FREQ=DAILY') {
-    throw new Error(`Unsupported E2 schedule: ${row.scheduleRrule}`);
+    throw new Error(`Unsupported activity schedule: ${row.scheduleRrule}`);
   }
   return {
     id: row.id as ActivityAssignmentId,
@@ -156,6 +188,20 @@ function completionRow(row: typeof schema.completionRecords.$inferSelect): Compl
     selfInitiated: row.selfInitiated,
     reminderCountAtCompletion: row.reminderCountAtCompletion,
     source: row.source === 'GUARDIAN' ? 'GUARDIAN' : 'CHILD_SELF',
+  };
+}
+
+function reminderRow(row: typeof schema.reminderRecords.$inferSelect): ReminderRecord {
+  return {
+    id: row.id as ReminderRecordId,
+    familyId: row.familyId as FamilyId,
+    activityInstanceId: row.activityInstanceId as ActivityInstanceId,
+    source: reminderSource(row.source),
+    kind: reminderKind(row.kind),
+    scheduledFor: row.scheduledFor,
+    attemptedAt: row.attemptedAt,
+    deliveredAt: row.deliveredAt,
+    acknowledgedAt: row.acknowledgedAt,
   };
 }
 
@@ -433,6 +479,7 @@ export class PostgresActivityRepository implements ActivityRepository {
     instanceId: ActivityInstanceId,
     expectedVersion: number,
     updatedAt: Date,
+    allowedStatuses: ActivityInstanceStatus[] = ['PENDING'],
   ) {
     const [row] = await this.db
       .update(schema.activityInstances)
@@ -446,12 +493,187 @@ export class PostgresActivityRepository implements ActivityRepository {
           eq(schema.activityInstances.familyId, familyId),
           eq(schema.activityInstances.id, instanceId),
           eq(schema.activityInstances.version, expectedVersion),
-          eq(schema.activityInstances.status, 'PENDING'),
+          inArray(schema.activityInstances.status, allowedStatuses),
         ),
       )
       .returning();
 
     return row ? instanceRow(row) : null;
+  }
+
+  async updateInstanceStatus(
+    familyId: FamilyId,
+    instanceId: ActivityInstanceId,
+    expectedVersion: number,
+    allowedStatuses: ActivityInstanceStatus[],
+    status: ActivityInstanceStatus,
+    updatedAt: Date,
+  ) {
+    const [row] = await this.db
+      .update(schema.activityInstances)
+      .set({
+        status,
+        updatedAt,
+        version: sql`${schema.activityInstances.version} + 1`,
+      })
+      .where(
+        and(
+          eq(schema.activityInstances.familyId, familyId),
+          eq(schema.activityInstances.id, instanceId),
+          eq(schema.activityInstances.version, expectedVersion),
+          inArray(schema.activityInstances.status, allowedStatuses),
+        ),
+      )
+      .returning();
+
+    return row ? instanceRow(row) : null;
+  }
+
+  async markExpiredPendingAwaitingResolution(now: Date) {
+    const rows = await this.db
+      .update(schema.activityInstances)
+      .set({
+        status: 'AWAITING_RESOLUTION',
+        updatedAt: now,
+        version: sql`${schema.activityInstances.version} + 1`,
+      })
+      .where(
+        and(
+          eq(schema.activityInstances.status, 'PENDING'),
+          lte(schema.activityInstances.opportunityEndsAt, now),
+        ),
+      )
+      .returning({ id: schema.activityInstances.id });
+
+    return rows.length;
+  }
+
+  async ensureReminder(record: ReminderRecord) {
+    const [inserted] = await this.db
+      .insert(schema.reminderRecords)
+      .values({
+        id: record.id,
+        familyId: record.familyId,
+        activityInstanceId: record.activityInstanceId,
+        source: record.source,
+        kind: record.kind,
+        scheduledFor: record.scheduledFor,
+        attemptedAt: record.attemptedAt,
+        deliveredAt: record.deliveredAt,
+        acknowledgedAt: record.acknowledgedAt,
+      })
+      .onConflictDoNothing({
+        target: [
+          schema.reminderRecords.activityInstanceId,
+          schema.reminderRecords.source,
+          schema.reminderRecords.kind,
+          schema.reminderRecords.scheduledFor,
+        ],
+      })
+      .returning();
+
+    if (inserted) return reminderRow(inserted);
+
+    const [existing] = await this.db
+      .select()
+      .from(schema.reminderRecords)
+      .where(
+        and(
+          eq(schema.reminderRecords.familyId, record.familyId),
+          eq(schema.reminderRecords.activityInstanceId, record.activityInstanceId),
+          eq(schema.reminderRecords.source, record.source),
+          eq(schema.reminderRecords.kind, record.kind),
+          eq(schema.reminderRecords.scheduledFor, record.scheduledFor),
+        ),
+      )
+      .limit(1);
+
+    if (!existing) throw new Error('Reminder scheduling conflict could not be resolved.');
+    return reminderRow(existing);
+  }
+
+  async listRemindersForInstance(familyId: FamilyId, instanceId: ActivityInstanceId) {
+    const rows = await this.db
+      .select()
+      .from(schema.reminderRecords)
+      .where(
+        and(
+          eq(schema.reminderRecords.familyId, familyId),
+          eq(schema.reminderRecords.activityInstanceId, instanceId),
+        ),
+      );
+    return rows.map(reminderRow);
+  }
+
+  async listProgressEvidence(
+    familyId: FamilyId,
+    assignmentId: ActivityAssignmentId,
+    through: Date,
+  ): Promise<ActivityOpportunityEvidence[]> {
+    const rows = await this.db
+      .select({
+        instance: schema.activityInstances,
+        completion: schema.completionRecords,
+      })
+      .from(schema.activityInstances)
+      .leftJoin(
+        schema.completionRecords,
+        and(
+          eq(schema.completionRecords.activityInstanceId, schema.activityInstances.id),
+          eq(schema.completionRecords.familyId, schema.activityInstances.familyId),
+        ),
+      )
+      .where(
+        and(
+          eq(schema.activityInstances.familyId, familyId),
+          eq(schema.activityInstances.assignmentId, assignmentId),
+          or(
+            lte(schema.activityInstances.opportunityEndsAt, through),
+            inArray(schema.activityInstances.status, [
+              'COMPLETED',
+              'MISSED',
+              'AWAITING_RESOLUTION',
+              'EXCUSED',
+              'NOT_APPLICABLE',
+            ]),
+          ),
+        ),
+      )
+      .orderBy(schema.activityInstances.targetAt);
+
+    const instanceIds = rows.map((row) => row.instance.id);
+    const reminderRows =
+      instanceIds.length === 0
+        ? []
+        : await this.db
+            .select()
+            .from(schema.reminderRecords)
+            .where(
+              and(
+                eq(schema.reminderRecords.familyId, familyId),
+                inArray(schema.reminderRecords.activityInstanceId, instanceIds),
+              ),
+            );
+
+    const remindersByInstance = new Map<string, ReminderRecord[]>();
+    for (const row of reminderRows) {
+      const reminder = reminderRow(row);
+      const current = remindersByInstance.get(reminder.activityInstanceId) ?? [];
+      current.push(reminder);
+      remindersByInstance.set(reminder.activityInstanceId, current);
+    }
+
+    return rows.map((row) => {
+      const instance = instanceRow(row.instance);
+      return {
+        instanceId: instance.id,
+        status: instance.status,
+        targetAt: instance.targetAt,
+        opportunityEndsAt: instance.opportunityEndsAt,
+        completion: row.completion ? completionRow(row.completion) : null,
+        reminders: remindersByInstance.get(instance.id) ?? [],
+      };
+    });
   }
 
   async appendDomainEvent(input: {
