@@ -1,15 +1,4 @@
-import {
-  and,
-  desc,
-  eq,
-  gte,
-  inArray,
-  isNull,
-  lt,
-  lte,
-  or,
-  sql,
-} from 'drizzle-orm';
+import { and, desc, eq, gte, inArray, isNull, lt, lte, or, sql } from 'drizzle-orm';
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import type { ActivityRepository } from '@/src/application/activity/activity-repository';
 import type {
