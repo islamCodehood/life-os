@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { ActivityService } from '@/src/application/activity/activity-service';
 import { e2CommandSchema } from '@/src/application/activity/e2-command-schema';
+import { e4CommandSchema } from '@/src/application/activity/e4-command-schema';
 import { AuthorizationService } from '@/src/application/identity/authorization-service';
 import { Argon2PinHasher } from '@/src/infrastructure/auth/argon2-pin-hasher';
 import { e1CommandSchema } from '@/src/application/identity/e1-command-schema';
@@ -17,7 +18,7 @@ import { AppError } from '@/src/infrastructure/http/errors';
 import { createRequestId } from '@/src/infrastructure/http/request-id';
 import { errorResponse } from '@/src/infrastructure/http/route-error';
 
-const commandSchema = z.union([e1CommandSchema, e2CommandSchema]);
+const commandSchema = z.union([e1CommandSchema, e2CommandSchema, e4CommandSchema]);
 
 type CommandResponse = {
   commandId: string;
@@ -172,6 +173,50 @@ export async function POST(request: Request) {
                 resourceType: 'ActivityInstance',
                 resourceId: completed.instance.id,
                 version: completed.instance.version,
+              },
+            ];
+            break;
+          }
+          case 'MarkActivityMissed': {
+            const expectedVersion = command.expectedVersions?.find(
+              (entry) =>
+                entry.resourceType === 'ActivityInstance' &&
+                entry.resourceId === command.payload.activityInstanceId,
+            )?.version;
+            const updated = await activities.markActivityMissed({
+              actor,
+              instanceId: command.payload.activityInstanceId as ActivityInstanceId,
+              recordedAt: serverNow,
+              ...(expectedVersion === undefined ? {} : { expectedVersion }),
+            });
+            data = { activityInstanceId: updated.id, status: updated.status };
+            resourceVersions = [
+              {
+                resourceType: 'ActivityInstance',
+                resourceId: updated.id,
+                version: updated.version,
+              },
+            ];
+            break;
+          }
+          case 'ExcuseActivity': {
+            const expectedVersion = command.expectedVersions?.find(
+              (entry) =>
+                entry.resourceType === 'ActivityInstance' &&
+                entry.resourceId === command.payload.activityInstanceId,
+            )?.version;
+            const updated = await activities.excuseActivity({
+              actor,
+              instanceId: command.payload.activityInstanceId as ActivityInstanceId,
+              recordedAt: serverNow,
+              ...(expectedVersion === undefined ? {} : { expectedVersion }),
+            });
+            data = { activityInstanceId: updated.id, status: updated.status };
+            resourceVersions = [
+              {
+                resourceType: 'ActivityInstance',
+                resourceId: updated.id,
+                version: updated.version,
               },
             ];
             break;
