@@ -23,8 +23,6 @@ describe('E4 activity reminder migration', () => {
     expect(migration).toContain('"reminder_instance_family_fk"');
     expect(migration).toContain('"activity_instance_id","family_id"');
     expect(migration).toContain('"reminder_records_schedule_uidx"');
-    expect(migration).toContain(
-      '"activity_instance_id","source","kind","scheduled_for"',
-    );
+    expect(migration).toContain('"activity_instance_id","source","kind","scheduled_for"');
   });
 });

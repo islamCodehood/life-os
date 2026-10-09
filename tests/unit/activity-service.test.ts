@@ -576,9 +576,7 @@ describe('ActivityService Make Bed pilot', () => {
       new Date('2026-10-05T02:00:00.000Z'),
     );
 
-    await f.service.materializeCurrentForAllFamilies(
-      new Date('2026-10-05T11:00:00.000Z'),
-    );
+    await f.service.materializeCurrentForAllFamilies(new Date('2026-10-05T11:00:00.000Z'));
 
     const result = await f.service.completeActivity({
       actor: f.child,
@@ -592,9 +590,7 @@ describe('ActivityService Make Bed pilot', () => {
       status: 'COMPLETED',
       version: 3,
     });
-    expect(result.completion.occurredAt.toISOString()).toBe(
-      '2026-10-05T07:15:00.000Z',
-    );
+    expect(result.completion.occurredAt.toISOString()).toBe('2026-10-05T07:15:00.000Z');
   });
 
   it('opens recovery only after a guardian-confirmed miss and recognizes the next valid completion', async () => {
@@ -605,9 +601,7 @@ describe('ActivityService Make Bed pilot', () => {
       new Date('2026-10-05T02:00:00.000Z'),
     );
 
-    await f.service.materializeCurrentForAllFamilies(
-      new Date('2026-10-05T11:00:00.000Z'),
-    );
+    await f.service.materializeCurrentForAllFamilies(new Date('2026-10-05T11:00:00.000Z'));
     await f.service.markActivityMissed({
       actor: f.guardian,
       instanceId: assigned.instance.id,
@@ -637,10 +631,7 @@ describe('ActivityService Make Bed pilot', () => {
       recoveryOpen: false,
     });
 
-    const today = await f.service.getChildToday(
-      f.child,
-      new Date('2026-10-06T08:00:00.000Z'),
-    );
+    const today = await f.service.getChildToday(f.child, new Date('2026-10-06T08:00:00.000Z'));
     expect(today.sections[0]?.items[0]).toMatchObject({
       status: 'completed',
       recoveryRecognition: true,
@@ -655,9 +646,7 @@ describe('ActivityService Make Bed pilot', () => {
       new Date('2026-10-05T02:00:00.000Z'),
     );
 
-    await f.service.materializeCurrentForAllFamilies(
-      new Date('2026-10-05T11:00:00.000Z'),
-    );
+    await f.service.materializeCurrentForAllFamilies(new Date('2026-10-05T11:00:00.000Z'));
     await f.service.excuseActivity({
       actor: f.guardian,
       instanceId: assigned.instance.id,
