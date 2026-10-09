@@ -42,13 +42,14 @@ export default async function ParentShellPage({ params }: { params: Promise<{ lo
 
   const pilotChildren = await Promise.all(
     childProfiles.map(async (child) => {
-      const [assignment, history] = await Promise.all([
+      const [assignment, history, insight] = await Promise.all([
         runtime.activityRepository.findActiveAssignmentByTemplate(
           actor.familyId,
           child.id,
           'SELF_MAKE_BED',
         ),
         runtime.activities.getParentHistory(actor, child.id),
+        runtime.activities.getParentMakeBedInsight(actor, child.id),
       ]);
 
       return {
@@ -61,6 +62,16 @@ export default async function ParentShellPage({ params }: { params: Promise<{ lo
           label: formatter.format(entry.completion.occurredAt),
           selfInitiated: entry.completion.selfInitiated,
         })),
+        insight: insight
+          ? {
+              metrics: insight.metrics,
+              unresolved: insight.unresolved.map((entry) => ({
+                id: entry.id,
+                version: entry.version,
+                label: formatter.format(new Date(entry.targetAt)),
+              })),
+            }
+          : null,
       };
     }),
   );
@@ -93,7 +104,11 @@ export default async function ParentShellPage({ params }: { params: Promise<{ lo
         messages={identityMessages}
       />
 
-      <ParentMakeBedPanel childProfiles={pilotChildren} messages={activityMessages} />
+      <ParentMakeBedPanel
+        childProfiles={pilotChildren}
+        messages={activityMessages}
+        locale={locale}
+      />
     </main>
   );
 }
