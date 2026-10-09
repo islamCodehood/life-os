@@ -21,10 +21,10 @@ export interface ParentGraduationChild {
 }
 
 export function ParentGraduationPanel({
-  children,
+  childProfiles,
   messages,
 }: {
-  children: ParentGraduationChild[];
+  childProfiles: ParentGraduationChild[];
   messages: ActivityMessages;
 }) {
   const router = useRouter();
@@ -55,7 +55,7 @@ export function ParentGraduationPanel({
                 expectedVersions: [
                   {
                     resourceType: 'ActivityAssignment',
-                    resourceId: children.find((child) => child.id === childId)?.graduation
+                    resourceId: childProfiles.find((child) => child.id === childId)?.graduation
                       ?.assignmentId,
                     version,
                   },
@@ -78,7 +78,7 @@ export function ParentGraduationPanel({
       <h2 id="graduation-title">{messages.graduationTitle}</h2>
       <p>{messages.graduationIntro}</p>
       {error && <p role="alert">{error}</p>}
-      {children.map((child) => {
+      {childProfiles.map((child) => {
         const item = child.graduation;
         if (!item) return null;
         const busy = busyId !== null;
