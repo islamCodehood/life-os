@@ -16,6 +16,7 @@ export type ActivityDefinitionId = BrandedId<'ActivityDefinitionId'>;
 export type ActivityAssignmentId = BrandedId<'ActivityAssignmentId'>;
 export type ActivityInstanceId = BrandedId<'ActivityInstanceId'>;
 export type CompletionRecordId = BrandedId<'CompletionRecordId'>;
+export type ReminderRecordId = BrandedId<'ReminderRecordId'>;
 export type DomainEventId = BrandedId<'DomainEventId'>;
 
 export function newId<Name extends string>(): BrandedId<Name> {
