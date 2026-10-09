@@ -211,13 +211,17 @@ export function ChildTodayResponsibilities({
             : local?.status === 'FAILED'
               ? messages.offlineFailed
               : null;
+        const recoveryMeta =
+          item.status === 'completed' && item.recoveryRecognition
+            ? messages.recoveryRecognition
+            : null;
         const scheduleMeta =
           item.status === 'pending' && !available
             ? messages.notAvailableYet
             : item.status === 'pending' && !open
               ? messages.opportunityClosed
               : null;
-        const meta = localMeta ?? scheduleMeta;
+        const meta = localMeta ?? recoveryMeta ?? scheduleMeta;
 
         const syncState = local
           ? local.status === 'SYNCING' || (local.status === 'PENDING' && online)

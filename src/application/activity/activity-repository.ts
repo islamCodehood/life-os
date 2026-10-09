@@ -4,11 +4,20 @@ import type {
   ActivityHistoryItem,
   ActivityInstance,
   ActivityInstanceContext,
+  ActivityInstanceStatus,
   ActivityTemplate,
   ActivityTemplateKey,
   CompletionRecord,
+  ReminderRecord,
 } from '@/src/domain/activity/entities';
-import type { ActivityInstanceId, ChildId, DomainEventId, FamilyId } from '@/src/domain/shared/id';
+import type { ActivityOpportunityEvidence } from '@/src/domain/activity/progress';
+import type {
+  ActivityAssignmentId,
+  ActivityInstanceId,
+  ChildId,
+  DomainEventId,
+  FamilyId,
+} from '@/src/domain/shared/id';
 
 export interface SchedulingFamily {
   familyId: FamilyId;
@@ -56,7 +65,32 @@ export interface ActivityRepository {
     instanceId: ActivityInstanceId,
     expectedVersion: number,
     updatedAt: Date,
+    allowedStatuses?: ActivityInstanceStatus[],
   ): Promise<ActivityInstance | null>;
+
+  updateInstanceStatus(
+    familyId: FamilyId,
+    instanceId: ActivityInstanceId,
+    expectedVersion: number,
+    allowedStatuses: ActivityInstanceStatus[],
+    status: ActivityInstanceStatus,
+    updatedAt: Date,
+  ): Promise<ActivityInstance | null>;
+
+  markExpiredPendingAwaitingResolution(now: Date): Promise<number>;
+
+  ensureReminder(record: ReminderRecord): Promise<ReminderRecord>;
+
+  listRemindersForInstance(
+    familyId: FamilyId,
+    instanceId: ActivityInstanceId,
+  ): Promise<ReminderRecord[]>;
+
+  listProgressEvidence(
+    familyId: FamilyId,
+    assignmentId: ActivityAssignmentId,
+    through: Date,
+  ): Promise<ActivityOpportunityEvidence[]>;
 
   appendDomainEvent(input: {
     id: DomainEventId;
