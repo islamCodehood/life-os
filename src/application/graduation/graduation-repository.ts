@@ -41,35 +41,89 @@ export interface GraduationRepository {
   getAssignment(familyId: FamilyId, id: ActivityAssignmentId): Promise<GraduationAssignment | null>;
   getMakeBedAssignment(familyId: FamilyId, childId: ChildId): Promise<GraduationAssignment | null>;
   getSuggestion(familyId: FamilyId, id: string): Promise<GraduationSuggestion | null>;
-  getPendingSuggestion(familyId: FamilyId, assignmentId: ActivityAssignmentId, kind: 'GRADUATION' | 'REACTIVATION'): Promise<GraduationSuggestion | null>;
+  getPendingSuggestion(
+    familyId: FamilyId,
+    assignmentId: ActivityAssignmentId,
+    kind: 'GRADUATION' | 'REACTIVATION',
+  ): Promise<GraduationSuggestion | null>;
   createEvidenceSnapshot(input: {
-    id: string; familyId: FamilyId; assignmentId: ActivityAssignmentId;
-    metrics: ActivityProgressMetrics; capturedAt: Date;
+    id: string;
+    familyId: FamilyId;
+    assignmentId: ActivityAssignmentId;
+    metrics: ActivityProgressMetrics;
+    capturedAt: Date;
   }): Promise<void>;
   createSuggestion(input: {
-    id: string; familyId: FamilyId; childId: ChildId; assignmentId: ActivityAssignmentId;
-    kind: 'GRADUATION' | 'REACTIVATION'; origin: 'GUARDIAN_REVIEW' | 'MONITORING_EVIDENCE';
-    evidenceSnapshotId?: string; graduationRecordId?: string; createdAt: Date;
+    id: string;
+    familyId: FamilyId;
+    childId: ChildId;
+    assignmentId: ActivityAssignmentId;
+    kind: 'GRADUATION' | 'REACTIVATION';
+    origin: 'GUARDIAN_REVIEW' | 'MONITORING_EVIDENCE';
+    evidenceSnapshotId?: string;
+    graduationRecordId?: string;
+    createdAt: Date;
   }): Promise<GraduationSuggestion>;
-  decideSuggestion(familyId: FamilyId, id: string, status: 'ACCEPTED' | 'DECLINED' | 'SNOOZED', guardianId: GuardianId, now: Date): Promise<GraduationSuggestion | null>;
+  decideSuggestion(
+    familyId: FamilyId,
+    id: string,
+    status: 'ACCEPTED' | 'DECLINED' | 'SNOOZED',
+    guardianId: GuardianId,
+    now: Date,
+  ): Promise<GraduationSuggestion | null>;
   transitionAssignment(input: {
-    familyId: FamilyId; assignmentId: ActivityAssignmentId; expectedVersion: number;
-    from: 'ACTIVE' | 'GRADUATED'; to: 'ACTIVE' | 'GRADUATED';
-    now: Date; activeFrom?: string;
+    familyId: FamilyId;
+    assignmentId: ActivityAssignmentId;
+    expectedVersion: number;
+    from: 'ACTIVE' | 'GRADUATED';
+    to: 'ACTIVE' | 'GRADUATED';
+    now: Date;
+    activeFrom?: string;
   }): Promise<GraduationAssignment | null>;
   createGraduationRecord(input: {
-    id: string; familyId: FamilyId; childId: ChildId; assignmentId: ActivityAssignmentId;
-    approvedBy: GuardianId; approvedAt: Date; monitoringIntervalDays: number;
+    id: string;
+    familyId: FamilyId;
+    childId: ChildId;
+    assignmentId: ActivityAssignmentId;
+    approvedBy: GuardianId;
+    approvedAt: Date;
+    monitoringIntervalDays: number;
   }): Promise<GraduationRecord>;
-  getActiveGraduation(familyId: FamilyId, assignmentId: ActivityAssignmentId): Promise<GraduationRecord | null>;
-  listChildGraduatedForRecord(familyId: FamilyId, recordId: string): Promise<GraduationRecord | null>;
-  listChildGraduated(familyId: FamilyId, childId: ChildId): Promise<Array<{
-    record: GraduationRecord; title: string; templateKey: string | null;
-  }>>;
+  getActiveGraduation(
+    familyId: FamilyId,
+    assignmentId: ActivityAssignmentId,
+  ): Promise<GraduationRecord | null>;
+  listChildGraduatedForRecord(
+    familyId: FamilyId,
+    recordId: string,
+  ): Promise<GraduationRecord | null>;
+  listChildGraduated(
+    familyId: FamilyId,
+    childId: ChildId,
+  ): Promise<
+    Array<{
+      record: GraduationRecord;
+      title: string;
+      templateKey: string | null;
+    }>
+  >;
   addObservation(input: {
-    id: string; familyId: FamilyId; graduationRecordId: string;
-    recordedBy: GuardianId; result: ObservationResult; observedAt: Date; recordedAt: Date;
+    id: string;
+    familyId: FamilyId;
+    graduationRecordId: string;
+    recordedBy: GuardianId;
+    result: ObservationResult;
+    observedAt: Date;
+    recordedAt: Date;
   }): Promise<void>;
-  listObservations(familyId: FamilyId, graduationRecordId: string): Promise<GraduationObservation[]>;
-  reactivateRecord(familyId: FamilyId, recordId: string, guardianId: GuardianId, now: Date): Promise<GraduationRecord | null>;
+  listObservations(
+    familyId: FamilyId,
+    graduationRecordId: string,
+  ): Promise<GraduationObservation[]>;
+  reactivateRecord(
+    familyId: FamilyId,
+    recordId: string,
+    guardianId: GuardianId,
+    now: Date,
+  ): Promise<GraduationRecord | null>;
 }

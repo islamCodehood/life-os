@@ -4,12 +4,22 @@ import type { IdentityRepository } from '@/src/application/identity/identity-rep
 import { calculateActivityProgress } from '@/src/domain/activity/progress';
 import { monitoringState, type ObservationResult } from '@/src/domain/graduation/monitoring';
 import { localDateInTimezone } from '@/src/domain/activity/schedule';
-import { newId, type ActivityAssignmentId, type ChildId, type DomainEventId } from '@/src/domain/shared/id';
+import {
+  newId,
+  type ActivityAssignmentId,
+  type ChildId,
+  type DomainEventId,
+} from '@/src/domain/shared/id';
 import type { GraduationRepository, GraduationSuggestion } from './graduation-repository';
 
 export class GraduationDomainError extends Error {
   constructor(
-    readonly code: 'FORBIDDEN' | 'RESOURCE_NOT_FOUND' | 'STALE_VERSION' | 'RESOURCE_STATE_CHANGED' | 'DOMAIN_RULE_VIOLATION',
+    readonly code:
+      | 'FORBIDDEN'
+      | 'RESOURCE_NOT_FOUND'
+      | 'STALE_VERSION'
+      | 'RESOURCE_STATE_CHANGED'
+      | 'DOMAIN_RULE_VIOLATION',
     message: string,
   ) {
     super(message);
@@ -18,7 +28,8 @@ export class GraduationDomainError extends Error {
 }
 
 function guardian(actor: ActorContext): Extract<ActorContext, { kind: 'GUARDIAN' }> {
-  if (actor.kind !== 'GUARDIAN') throw new GraduationDomainError('FORBIDDEN', 'Guardian permission is required.');
+  if (actor.kind !== 'GUARDIAN')
+    throw new GraduationDomainError('FORBIDDEN', 'Guardian permission is required.');
   return actor;
 }
 function nextLocalDate(timezone: string, now: Date) {
@@ -38,14 +49,19 @@ export class GraduationService {
   private async assignmentForGuardian(actor: ActorContext, assignmentId: ActivityAssignmentId) {
     const owner = guardian(actor);
     const assignment = await this.repository.getAssignment(owner.familyId, assignmentId);
-    if (!assignment) throw new GraduationDomainError('RESOURCE_NOT_FOUND', 'Responsibility was not found.');
-    if (!await this.identity.getChild(owner.familyId, assignment.childId)) {
+    if (!assignment)
+      throw new GraduationDomainError('RESOURCE_NOT_FOUND', 'Responsibility was not found.');
+    if (!(await this.identity.getChild(owner.familyId, assignment.childId))) {
       throw new GraduationDomainError('RESOURCE_NOT_FOUND', 'Child was not found.');
     }
     return { owner, assignment };
   }
 
-  private async guardianSuggestion(actor: ActorContext, suggestionId: string, kind: GraduationSuggestion['kind']) {
+  private async guardianSuggestion(
+    actor: ActorContext,
+    suggestionId: string,
+    kind: GraduationSuggestion['kind'],
+  ) {
     const owner = guardian(actor);
     const suggestion = await this.repository.getSuggestion(owner.familyId, suggestionId);
     if (!suggestion || suggestion.kind !== kind) {
@@ -53,10 +69,16 @@ export class GraduationService {
     }
     const { assignment } = await this.assignmentForGuardian(actor, suggestion.assignmentId);
     if (assignment.childId !== suggestion.childId) {
-      throw new GraduationDomainError('RESOURCE_NOT_FOUND', 'Review does not belong to this child.');
+      throw new GraduationDomainError(
+        'RESOURCE_NOT_FOUND',
+        'Review does not belong to this child.',
+      );
     }
     if (suggestion.status !== 'PENDING') {
-      throw new GraduationDomainError('RESOURCE_STATE_CHANGED', 'This review is no longer pending.');
+      throw new GraduationDomainError(
+        'RESOURCE_STATE_CHANGED',
+        'This review is no longer pending.',
+      );
     }
     return { owner, suggestion, assignment };
   }
@@ -64,9 +86,16 @@ export class GraduationService {
   async requestReview(actor: ActorContext, assignmentId: ActivityAssignmentId, now = new Date()) {
     const { owner, assignment } = await this.assignmentForGuardian(actor, assignmentId);
     if (assignment.status !== 'ACTIVE') {
-      throw new GraduationDomainError('RESOURCE_STATE_CHANGED', 'Only active responsibilities can be reviewed for graduation.');
+      throw new GraduationDomainError(
+        'RESOURCE_STATE_CHANGED',
+        'Only active responsibilities can be reviewed for graduation.',
+      );
     }
-    const existing = await this.repository.getPendingSuggestion(owner.familyId, assignment.id, 'GRADUATION');
+    const existing = await this.repository.getPendingSuggestion(
+      owner.familyId,
+      assignment.id,
+      'GRADUATION',
+    );
     if (existing) return existing;
 
     const metrics = calculateActivityProgress(
@@ -86,13 +115,21 @@ export class GraduationService {
     }
     const evidenceSnapshotId = newId<'GraduationEvidenceSnapshotId'>();
     await this.repository.createEvidenceSnapshot({
-      id: evidenceSnapshotId, familyId: owner.familyId,
-      assignmentId: assignment.id, capturedAt: now, metrics,
+      id: evidenceSnapshotId,
+      familyId: owner.familyId,
+      assignmentId: assignment.id,
+      capturedAt: now,
+      metrics,
     });
     const review = await this.repository.createSuggestion({
-      id: newId<'GraduationSuggestionId'>(), familyId: owner.familyId, childId: assignment.childId,
-      assignmentId: assignment.id, kind: 'GRADUATION', origin: 'GUARDIAN_REVIEW',
-      evidenceSnapshotId, createdAt: now,
+      id: newId<'GraduationSuggestionId'>(),
+      familyId: owner.familyId,
+      childId: assignment.childId,
+      assignmentId: assignment.id,
+      kind: 'GRADUATION',
+      origin: 'GUARDIAN_REVIEW',
+      evidenceSnapshotId,
+      createdAt: now,
     });
     return review;
   }
@@ -107,58 +144,107 @@ export class GraduationService {
     now?: Date;
   }) {
     const now = input.now ?? new Date();
-    const { owner, suggestion, assignment } = await this.guardianSuggestion(input.actor, input.suggestionId, 'GRADUATION');
+    const { owner, suggestion, assignment } = await this.guardianSuggestion(
+      input.actor,
+      input.suggestionId,
+      'GRADUATION',
+    );
     if (input.decision !== 'APPROVE') {
       const decided = await this.repository.decideSuggestion(
-        owner.familyId, suggestion.id, input.decision === 'DECLINE' ? 'DECLINED' : 'SNOOZED',
-        owner.guardianId, now,
+        owner.familyId,
+        suggestion.id,
+        input.decision === 'DECLINE' ? 'DECLINED' : 'SNOOZED',
+        owner.guardianId,
+        now,
       );
-      if (!decided) throw new GraduationDomainError('RESOURCE_STATE_CHANGED', 'Review already resolved.');
+      if (!decided)
+        throw new GraduationDomainError('RESOURCE_STATE_CHANGED', 'Review already resolved.');
       return { suggestion: decided, assignment, graduation: null };
     }
     if (input.expectedVersion === undefined || input.expectedVersion !== assignment.version) {
-      throw new GraduationDomainError('STALE_VERSION', 'Refresh the responsibility before approving graduation.');
+      throw new GraduationDomainError(
+        'STALE_VERSION',
+        'Refresh the responsibility before approving graduation.',
+      );
     }
-    if (assignment.status !== 'ACTIVE') throw new GraduationDomainError('RESOURCE_STATE_CHANGED', 'Responsibility is not active.');
+    if (assignment.status !== 'ACTIVE')
+      throw new GraduationDomainError('RESOURCE_STATE_CHANGED', 'Responsibility is not active.');
 
     const metrics = calculateActivityProgress(
       await this.activities.listProgressEvidence(owner.familyId, assignment.id, now),
     );
-    if (!metrics.coverageComplete || metrics.recoveryOpen || metrics.applicableOpportunities === 0) {
-      throw new GraduationDomainError('DOMAIN_RULE_VIOLATION', 'Evidence changed; review cannot be approved until observations are resolved.');
+    if (
+      !metrics.coverageComplete ||
+      metrics.recoveryOpen ||
+      metrics.applicableOpportunities === 0
+    ) {
+      throw new GraduationDomainError(
+        'DOMAIN_RULE_VIOLATION',
+        'Evidence changed; review cannot be approved until observations are resolved.',
+      );
     }
 
     const updated = await this.repository.transitionAssignment({
-      familyId: owner.familyId, assignmentId: assignment.id,
-      expectedVersion: input.expectedVersion, from: 'ACTIVE', to: 'GRADUATED', now,
+      familyId: owner.familyId,
+      assignmentId: assignment.id,
+      expectedVersion: input.expectedVersion,
+      from: 'ACTIVE',
+      to: 'GRADUATED',
+      now,
     });
-    if (!updated) throw new GraduationDomainError('STALE_VERSION', 'Responsibility changed on another device.');
+    if (!updated)
+      throw new GraduationDomainError('STALE_VERSION', 'Responsibility changed on another device.');
 
     const graduation = await this.repository.createGraduationRecord({
-      id: newId<'GraduationRecordId'>(), familyId: owner.familyId, childId: assignment.childId,
-      assignmentId: assignment.id, approvedBy: owner.guardianId, approvedAt: now,
+      id: newId<'GraduationRecordId'>(),
+      familyId: owner.familyId,
+      childId: assignment.childId,
+      assignmentId: assignment.id,
+      approvedBy: owner.guardianId,
+      approvedAt: now,
       monitoringIntervalDays: input.monitoringIntervalDays ?? 14,
     });
-    const decided = await this.repository.decideSuggestion(owner.familyId, suggestion.id, 'ACCEPTED', owner.guardianId, now);
-    if (!decided) throw new GraduationDomainError('RESOURCE_STATE_CHANGED', 'Review already resolved.');
+    const decided = await this.repository.decideSuggestion(
+      owner.familyId,
+      suggestion.id,
+      'ACCEPTED',
+      owner.guardianId,
+      now,
+    );
+    if (!decided)
+      throw new GraduationDomainError('RESOURCE_STATE_CHANGED', 'Review already resolved.');
     await this.activities.appendDomainEvent({
-      id: newId<'DomainEventId'>() as DomainEventId, familyId: owner.familyId,
-      type: 'ResponsibilityGraduated', aggregateType: 'ActivityAssignment',
-      aggregateId: assignment.id, occurredAt: input.occurredAt, recordedAt: now,
-      payload: { childId: assignment.childId, graduationRecordId: graduation.id, monitoringIntervalDays: graduation.monitoringIntervalDays },
+      id: newId<'DomainEventId'>() as DomainEventId,
+      familyId: owner.familyId,
+      type: 'ResponsibilityGraduated',
+      aggregateType: 'ActivityAssignment',
+      aggregateId: assignment.id,
+      occurredAt: input.occurredAt,
+      recordedAt: now,
+      payload: {
+        childId: assignment.childId,
+        graduationRecordId: graduation.id,
+        monitoringIntervalDays: graduation.monitoringIntervalDays,
+      },
     });
     return { suggestion: decided, assignment: updated, graduation };
   }
 
   async recordObservation(input: {
-    actor: ActorContext; graduationRecordId: string; result: ObservationResult;
-    occurredAt: Date; now?: Date;
+    actor: ActorContext;
+    graduationRecordId: string;
+    result: ObservationResult;
+    occurredAt: Date;
+    now?: Date;
   }) {
     const now = input.now ?? new Date();
     const owner = guardian(input.actor);
     // The lookup is always family-scoped via the child's assignment and record.
-    const graduated = await this.repository.listChildGraduatedForRecord(owner.familyId, input.graduationRecordId);
-    if (!graduated || !await this.identity.getChild(owner.familyId, graduated.childId)) {
+    const graduated = await this.repository.listChildGraduatedForRecord(
+      owner.familyId,
+      input.graduationRecordId,
+    );
+    if (!graduated || !(await this.identity.getChild(owner.familyId, graduated.childId))) {
       throw new GraduationDomainError('RESOURCE_NOT_FOUND', 'Graduated responsibility not found.');
     }
     if (
@@ -166,92 +252,171 @@ export class GraduationService {
       input.occurredAt > now ||
       (graduated.lastObservedAt && input.occurredAt < graduated.lastObservedAt)
     ) {
-      throw new GraduationDomainError('DOMAIN_RULE_VIOLATION', 'Observation time must follow graduation and prior observations.');
+      throw new GraduationDomainError(
+        'DOMAIN_RULE_VIOLATION',
+        'Observation time must follow graduation and prior observations.',
+      );
     }
     await this.repository.addObservation({
-      id: newId<'GraduationObservationId'>(), familyId: owner.familyId,
-      graduationRecordId: graduated.id, recordedBy: owner.guardianId, result: input.result,
-      observedAt: input.occurredAt, recordedAt: now,
+      id: newId<'GraduationObservationId'>(),
+      familyId: owner.familyId,
+      graduationRecordId: graduated.id,
+      recordedBy: owner.guardianId,
+      result: input.result,
+      observedAt: input.occurredAt,
+      recordedAt: now,
     });
     const observations = await this.repository.listObservations(owner.familyId, graduated.id);
     const state = monitoringState({
-      ...graduated, lastObservedAt: input.occurredAt, observations, now,
+      ...graduated,
+      lastObservedAt: input.occurredAt,
+      observations,
+      now,
     });
     let suggestion = null;
     if (state === 'REACTIVATION_REVIEW') {
       suggestion = await this.repository.createSuggestion({
-        id: newId<'GraduationSuggestionId'>(), familyId: owner.familyId,
-        childId: graduated.childId, assignmentId: graduated.assignmentId,
-        graduationRecordId: graduated.id, kind: 'REACTIVATION',
-        origin: 'MONITORING_EVIDENCE', createdAt: now,
+        id: newId<'GraduationSuggestionId'>(),
+        familyId: owner.familyId,
+        childId: graduated.childId,
+        assignmentId: graduated.assignmentId,
+        graduationRecordId: graduated.id,
+        kind: 'REACTIVATION',
+        origin: 'MONITORING_EVIDENCE',
+        createdAt: now,
       });
     }
     await this.activities.appendDomainEvent({
-      id: newId<'DomainEventId'>() as DomainEventId, familyId: owner.familyId,
-      type: 'GraduatedResponsibilityObserved', aggregateType: 'GraduationRecord',
-      aggregateId: graduated.id, occurredAt: input.occurredAt, recordedAt: now,
+      id: newId<'DomainEventId'>() as DomainEventId,
+      familyId: owner.familyId,
+      type: 'GraduatedResponsibilityObserved',
+      aggregateType: 'GraduationRecord',
+      aggregateId: graduated.id,
+      occurredAt: input.occurredAt,
+      recordedAt: now,
       payload: { childId: graduated.childId, result: input.result, monitoringState: state },
     });
-    return { record: graduated.id, monitoringState: state, reactivationSuggestionId: suggestion?.id ?? null };
+    return {
+      record: graduated.id,
+      monitoringState: state,
+      reactivationSuggestionId: suggestion?.id ?? null,
+    };
   }
 
   async decideReactivation(input: {
-    actor: ActorContext; suggestionId: string; decision: 'APPROVE' | 'DECLINE';
-    expectedVersion?: number; occurredAt: Date; now?: Date;
+    actor: ActorContext;
+    suggestionId: string;
+    decision: 'APPROVE' | 'DECLINE';
+    expectedVersion?: number;
+    occurredAt: Date;
+    now?: Date;
   }) {
     const now = input.now ?? new Date();
-    const { owner, suggestion, assignment } = await this.guardianSuggestion(input.actor, input.suggestionId, 'REACTIVATION');
+    const { owner, suggestion, assignment } = await this.guardianSuggestion(
+      input.actor,
+      input.suggestionId,
+      'REACTIVATION',
+    );
     if (input.decision === 'DECLINE') {
-      const decided = await this.repository.decideSuggestion(owner.familyId, suggestion.id, 'DECLINED', owner.guardianId, now);
-      if (!decided) throw new GraduationDomainError('RESOURCE_STATE_CHANGED', 'Review already resolved.');
+      const decided = await this.repository.decideSuggestion(
+        owner.familyId,
+        suggestion.id,
+        'DECLINED',
+        owner.guardianId,
+        now,
+      );
+      if (!decided)
+        throw new GraduationDomainError('RESOURCE_STATE_CHANGED', 'Review already resolved.');
       return { suggestion: decided, assignment };
     }
     const record = await this.repository.getActiveGraduation(owner.familyId, assignment.id);
-    if (!record || record.id !== suggestion.graduationRecordId || assignment.status !== 'GRADUATED') {
-      throw new GraduationDomainError('RESOURCE_STATE_CHANGED', 'Responsibility is no longer graduated.');
+    if (
+      !record ||
+      record.id !== suggestion.graduationRecordId ||
+      assignment.status !== 'GRADUATED'
+    ) {
+      throw new GraduationDomainError(
+        'RESOURCE_STATE_CHANGED',
+        'Responsibility is no longer graduated.',
+      );
     }
     const observations = await this.repository.listObservations(owner.familyId, record.id);
     if (monitoringState({ ...record, observations, now }) !== 'REACTIVATION_REVIEW') {
-      throw new GraduationDomainError('RESOURCE_STATE_CHANGED', 'Current monitoring evidence no longer supports reactivation review.');
+      throw new GraduationDomainError(
+        'RESOURCE_STATE_CHANGED',
+        'Current monitoring evidence no longer supports reactivation review.',
+      );
     }
     if (input.expectedVersion === undefined || input.expectedVersion !== assignment.version) {
-      throw new GraduationDomainError('STALE_VERSION', 'Refresh the responsibility before reactivation.');
+      throw new GraduationDomainError(
+        'STALE_VERSION',
+        'Refresh the responsibility before reactivation.',
+      );
     }
     const updated = await this.repository.transitionAssignment({
-      familyId: owner.familyId, assignmentId: assignment.id,
-      expectedVersion: input.expectedVersion, from: 'GRADUATED', to: 'ACTIVE',
-      now, activeFrom: nextLocalDate(assignment.scheduleTimezone, now),
+      familyId: owner.familyId,
+      assignmentId: assignment.id,
+      expectedVersion: input.expectedVersion,
+      from: 'GRADUATED',
+      to: 'ACTIVE',
+      now,
+      activeFrom: nextLocalDate(assignment.scheduleTimezone, now),
     });
-    if (!updated) throw new GraduationDomainError('STALE_VERSION', 'Responsibility changed on another device.');
-    if (!await this.repository.reactivateRecord(owner.familyId, record.id, owner.guardianId, now)) {
-      throw new GraduationDomainError('RESOURCE_STATE_CHANGED', 'Graduation record was already closed.');
+    if (!updated)
+      throw new GraduationDomainError('STALE_VERSION', 'Responsibility changed on another device.');
+    if (
+      !(await this.repository.reactivateRecord(owner.familyId, record.id, owner.guardianId, now))
+    ) {
+      throw new GraduationDomainError(
+        'RESOURCE_STATE_CHANGED',
+        'Graduation record was already closed.',
+      );
     }
-    const decided = await this.repository.decideSuggestion(owner.familyId, suggestion.id, 'ACCEPTED', owner.guardianId, now);
-    if (!decided) throw new GraduationDomainError('RESOURCE_STATE_CHANGED', 'Review already resolved.');
+    const decided = await this.repository.decideSuggestion(
+      owner.familyId,
+      suggestion.id,
+      'ACCEPTED',
+      owner.guardianId,
+      now,
+    );
+    if (!decided)
+      throw new GraduationDomainError('RESOURCE_STATE_CHANGED', 'Review already resolved.');
     await this.activities.appendDomainEvent({
-      id: newId<'DomainEventId'>() as DomainEventId, familyId: owner.familyId,
-      type: 'ResponsibilityReactivated', aggregateType: 'ActivityAssignment',
-      aggregateId: assignment.id, occurredAt: input.occurredAt, recordedAt: now,
-      payload: { childId: assignment.childId, graduationRecordId: record.id, resumeOn: updated.activeFrom },
+      id: newId<'DomainEventId'>() as DomainEventId,
+      familyId: owner.familyId,
+      type: 'ResponsibilityReactivated',
+      aggregateType: 'ActivityAssignment',
+      aggregateId: assignment.id,
+      occurredAt: input.occurredAt,
+      recordedAt: now,
+      payload: {
+        childId: assignment.childId,
+        graduationRecordId: record.id,
+        resumeOn: updated.activeFrom,
+      },
     });
     return { suggestion: decided, assignment: updated };
   }
 
   async parentOverview(actor: ActorContext, childId: ChildId, now = new Date()) {
     const owner = guardian(actor);
-    if (!await this.identity.getChild(owner.familyId, childId)) {
+    if (!(await this.identity.getChild(owner.familyId, childId))) {
       throw new GraduationDomainError('RESOURCE_NOT_FOUND', 'Child not found.');
     }
     const assignment = await this.repository.getMakeBedAssignment(owner.familyId, childId);
     if (!assignment) return null;
     const graduated = await this.repository.getActiveGraduation(owner.familyId, assignment.id);
     const observations = graduated
-      ? await this.repository.listObservations(owner.familyId, graduated.id) : [];
+      ? await this.repository.listObservations(owner.familyId, graduated.id)
+      : [];
     const suggestion = await this.repository.getPendingSuggestion(
-      owner.familyId, assignment.id, graduated ? 'REACTIVATION' : 'GRADUATION',
+      owner.familyId,
+      assignment.id,
+      graduated ? 'REACTIVATION' : 'GRADUATION',
     );
     return {
-      assignmentId: assignment.id, assignmentVersion: assignment.version,
+      assignmentId: assignment.id,
+      assignmentVersion: assignment.version,
       status: assignment.status,
       suggestionId: suggestion?.id ?? null,
       suggestionKind: suggestion?.kind ?? null,
@@ -271,8 +436,10 @@ export class GraduationService {
     }
     const entries = await this.repository.listChildGraduated(actor.familyId, actor.childId);
     return entries.map((entry) => ({
-      id: entry.record.id, title: entry.title,
-      templateKey: entry.templateKey, graduatedAt: entry.record.approvedAt.toISOString(),
+      id: entry.record.id,
+      title: entry.title,
+      templateKey: entry.templateKey,
+      graduatedAt: entry.record.approvedAt.toISOString(),
     }));
   }
 }
