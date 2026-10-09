@@ -186,6 +186,7 @@ export async function POST(request: Request) {
             const updated = await activities.markActivityMissed({
               actor,
               instanceId: command.payload.activityInstanceId as ActivityInstanceId,
+              occurredAt: new Date(command.occurredAt),
               recordedAt: serverNow,
               ...(expectedVersion === undefined ? {} : { expectedVersion }),
             });
@@ -208,6 +209,7 @@ export async function POST(request: Request) {
             const updated = await activities.excuseActivity({
               actor,
               instanceId: command.payload.activityInstanceId as ActivityInstanceId,
+              occurredAt: new Date(command.occurredAt),
               recordedAt: serverNow,
               ...(expectedVersion === undefined ? {} : { expectedVersion }),
             });
