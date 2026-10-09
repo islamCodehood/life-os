@@ -130,10 +130,13 @@ export class ActivityService {
       'SELF_MAKE_BED',
     );
     if (existing) {
-      const instance =
-        existing.status === 'ACTIVE'
-          ? await this.materializeAssignmentForDate(existing, existing.activeFrom)
-          : null;
+      if (existing.status === 'GRADUATED') {
+        throw new ActivityDomainError(
+          'RESOURCE_STATE_CHANGED',
+          'This responsibility is graduated; guardian reactivation is required before daily tracking resumes.',
+        );
+      }
+      const instance = await this.materializeAssignmentForDate(existing, existing.activeFrom);
       return { assignment: existing, instance, created: false };
     }
 
