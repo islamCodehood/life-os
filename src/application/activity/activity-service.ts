@@ -8,14 +8,26 @@ import type {
   ActivityInstance,
   ActivityInstanceStatus,
   CompletionRecord,
+  ReminderRecord,
 } from '@/src/domain/activity/entities';
 import { resolveActivityPolicy } from '@/src/domain/activity/policy';
+import {
+  calculateActivityProgress,
+  recoveryLatencyForCompletion,
+  type ActivityProgressMetrics,
+} from '@/src/domain/activity/progress';
+import {
+  classifyCompletionReminderEvidence,
+  defaultActivityReminderPolicy,
+  scheduledSystemReminderAt,
+} from '@/src/domain/activity/reminder';
 import {
   buildDailyOpportunityWindow,
   initialDailyActiveDate,
   localDateInTimezone,
   localDayBoundsUtc,
 } from '@/src/domain/activity/schedule';
+import { deriveAgeProfile } from '@/src/domain/identity/experience';
 import { newId } from '@/src/domain/shared/id';
 import type {
   ActivityAssignmentId,
@@ -26,6 +38,7 @@ import type {
   DomainEventId,
   FamilyId,
   GuardianId,
+  ReminderRecordId,
 } from '@/src/domain/shared/id';
 
 export class ActivityDomainError extends Error {
@@ -54,6 +67,7 @@ export interface ActivityCardDto {
   targetAt: string;
   availableFrom: string;
   opportunityEndsAt: string;
+  recoveryRecognition: boolean;
 }
 
 export interface ChildTodayDto {
@@ -66,6 +80,11 @@ export interface ChildTodayDto {
   }>;
   pendingJobs: number;
   generatedAt: string;
+}
+
+export interface ParentMakeBedInsightDto {
+  assignmentId: ActivityAssignmentId;
+  metrics: ActivityProgressMetrics;
 }
 
 function requireGuardian(actor: ActorContext): Extract<ActorContext, { kind: 'GUARDIAN' }> {
@@ -125,7 +144,7 @@ export class ActivityService {
     ) {
       throw new ActivityDomainError(
         'DOMAIN_RULE_VIOLATION',
-        'Make Bed template does not match the E2 responsibility contract.',
+        'Make Bed template does not match the responsibility contract.',
       );
     }
 
@@ -157,6 +176,7 @@ export class ActivityService {
       localTargetTime: template.defaultLocalTargetTime,
       availableOffsetMinutes: template.defaultAvailableOffsetMinutes,
     });
+    const ageProfile = deriveAgeProfile(child.birthDate, activeFrom);
 
     const assignment: ActivityAssignment = {
       id: newId<'ActivityAssignmentId'>() as ActivityAssignmentId,
@@ -175,7 +195,7 @@ export class ActivityService {
       progressMode: policy.progressMode,
       xpMode: policy.xp,
       xpAmount: null,
-      reminderPolicy: {},
+      reminderPolicy: defaultActivityReminderPolicy(ageProfile),
       activeFrom,
       activeUntil: null,
       version: 1,
@@ -202,6 +222,7 @@ export class ActivityService {
   }
 
   async materializeCurrentForAllFamilies(now = new Date()) {
+    const awaitingResolution = await this.repository.markExpiredPendingAwaitingResolution(now);
     const families = await this.repository.listSchedulingFamilies();
     let materialized = 0;
 
@@ -210,7 +231,7 @@ export class ActivityService {
       materialized += (await this.materializeFamilyDate(family.familyId, date)).length;
     }
 
-    return { families: families.length, materialized };
+    return { families: families.length, materialized, awaitingResolution };
   }
 
   async getChildToday(actor: ActorContext, now = new Date()): Promise<ChildTodayDto> {
@@ -230,6 +251,35 @@ export class ActivityService {
       end,
     );
 
+    const items: ActivityCardDto[] = [];
+    for (const { instance, assignment, definition } of contexts) {
+      if (instance.status === 'EXCUSED' || instance.status === 'NOT_APPLICABLE') continue;
+
+      let recoveryRecognition = false;
+      if (instance.status === 'COMPLETED') {
+        const evidence = await this.repository.listProgressEvidence(
+          actor.familyId,
+          assignment.id,
+          now,
+        );
+        recoveryRecognition = recoveryLatencyForCompletion(evidence, instance.id) !== null;
+      }
+
+      items.push({
+        id: instance.id,
+        templateKey: definition.templateKey,
+        title: definition.title,
+        why: definition.why,
+        scheduleLabel: assignment.localTargetTime,
+        status: cardStatus(instance.status),
+        version: instance.version,
+        targetAt: instance.targetAt.toISOString(),
+        availableFrom: instance.availableFrom.toISOString(),
+        opportunityEndsAt: instance.opportunityEndsAt.toISOString(),
+        recoveryRecognition,
+      });
+    }
+
     return {
       date,
       timezone: family.timezone,
@@ -237,18 +287,7 @@ export class ActivityService {
         {
           key: 'responsibilities',
           title: 'Today',
-          items: contexts.map(({ instance, assignment, definition }) => ({
-            id: instance.id,
-            templateKey: definition.templateKey,
-            title: definition.title,
-            why: definition.why,
-            scheduleLabel: assignment.localTargetTime,
-            status: cardStatus(instance.status),
-            version: instance.version,
-            targetAt: instance.targetAt.toISOString(),
-            availableFrom: instance.availableFrom.toISOString(),
-            opportunityEndsAt: instance.opportunityEndsAt.toISOString(),
-          })),
+          items,
         },
       ],
       pendingJobs: 0,
@@ -294,14 +333,21 @@ export class ActivityService {
       return { instance: context.instance, completion: existing, alreadyCompleted: true };
     }
 
-    if (context.instance.status !== 'PENDING') {
+    if (
+      context.instance.status !== 'PENDING' &&
+      context.instance.status !== 'AWAITING_RESOLUTION'
+    ) {
       throw new ActivityDomainError(
         'RESOURCE_STATE_CHANGED',
         'This activity opportunity can no longer be completed.',
       );
     }
 
-    if (input.expectedVersion !== undefined && input.expectedVersion !== context.instance.version) {
+    if (
+      context.instance.status === 'PENDING' &&
+      input.expectedVersion !== undefined &&
+      input.expectedVersion !== context.instance.version
+    ) {
       throw new ActivityDomainError('STALE_VERSION', 'This activity changed on another device.');
     }
 
@@ -315,21 +361,32 @@ export class ActivityService {
       );
     }
 
+    const reminders = await this.repository.listRemindersForInstance(
+      familyId,
+      context.instance.id,
+    );
+    const reporter = input.actor.kind === 'CHILD' ? 'CHILD' : 'GUARDIAN';
+    const reminderEvidence = classifyCompletionReminderEvidence({
+      reporter,
+      occurredAt: input.occurredAt,
+      reminders,
+    });
+
     const completion: CompletionRecord = {
       id: newId<'CompletionRecordId'>() as CompletionRecordId,
-      familyId: familyId,
+      familyId,
       activityInstanceId: context.instance.id,
       occurredAt: input.occurredAt,
       recordedAt,
-      reportedByKind: input.actor.kind === 'CHILD' ? 'CHILD' : 'GUARDIAN',
+      reportedByKind: reporter,
       reportedById:
         input.actor.kind === 'CHILD'
           ? input.actor.childId
           : input.actor.kind === 'GUARDIAN'
             ? input.actor.guardianId
             : null,
-      selfInitiated: input.actor.kind === 'CHILD',
-      reminderCountAtCompletion: 0,
+      selfInitiated: reminderEvidence.selfInitiated,
+      reminderCountAtCompletion: reminderEvidence.reminderCountAtCompletion,
       source: input.actor.kind === 'CHILD' ? 'CHILD_SELF' : 'GUARDIAN',
     };
 
@@ -339,6 +396,7 @@ export class ActivityService {
       context.instance.id,
       context.instance.version,
       recordedAt,
+      [context.instance.status],
     );
     if (!updated) {
       throw new ActivityDomainError('STALE_VERSION', 'This activity changed on another device.');
@@ -346,7 +404,7 @@ export class ActivityService {
 
     await this.repository.appendDomainEvent({
       id: newId<'DomainEventId'>() as DomainEventId,
-      familyId: familyId,
+      familyId,
       type: 'ActivityCompleted',
       aggregateType: 'ActivityInstance',
       aggregateId: updated.id,
@@ -357,10 +415,138 @@ export class ActivityService {
         childId: updated.childId,
         source: completion.source,
         selfInitiated: completion.selfInitiated,
+        reminderCountAtCompletion: completion.reminderCountAtCompletion,
+        externalReminderCountAtCompletion:
+          reminderEvidence.externalReminderCountAtCompletion,
       },
     });
 
     return { instance: updated, completion, alreadyCompleted: false };
+  }
+
+  async markActivityMissed(input: {
+    actor: ActorContext;
+    instanceId: ActivityInstanceId;
+    recordedAt?: Date;
+    expectedVersion?: number;
+  }) {
+    const guardian = requireGuardian(input.actor);
+    const recordedAt = input.recordedAt ?? new Date();
+    const context = await this.repository.getInstanceForUpdate(
+      guardian.familyId,
+      input.instanceId,
+    );
+
+    if (
+      !context ||
+      !(await this.authorization.canManageActivity(guardian, context.instance.childId))
+    ) {
+      throw new ActivityDomainError('RESOURCE_NOT_FOUND', 'Activity opportunity was not found.');
+    }
+    if (context.instance.status !== 'AWAITING_RESOLUTION') {
+      throw new ActivityDomainError(
+        'RESOURCE_STATE_CHANGED',
+        'Only an unresolved activity opportunity can be confirmed missed.',
+      );
+    }
+    if (
+      input.expectedVersion !== undefined &&
+      input.expectedVersion !== context.instance.version
+    ) {
+      throw new ActivityDomainError('STALE_VERSION', 'This activity changed on another device.');
+    }
+
+    const updated = await this.repository.updateInstanceStatus(
+      guardian.familyId,
+      context.instance.id,
+      context.instance.version,
+      ['AWAITING_RESOLUTION'],
+      'MISSED',
+      recordedAt,
+    );
+    if (!updated) {
+      throw new ActivityDomainError('STALE_VERSION', 'This activity changed on another device.');
+    }
+
+    await this.repository.appendDomainEvent({
+      id: newId<'DomainEventId'>() as DomainEventId,
+      familyId: guardian.familyId,
+      type: 'ActivityMissed',
+      aggregateType: 'ActivityInstance',
+      aggregateId: updated.id,
+      occurredAt: recordedAt,
+      recordedAt,
+      payload: {
+        activityInstanceId: updated.id,
+        childId: updated.childId,
+      },
+    });
+
+    return updated;
+  }
+
+  async excuseActivity(input: {
+    actor: ActorContext;
+    instanceId: ActivityInstanceId;
+    recordedAt?: Date;
+    expectedVersion?: number;
+  }) {
+    const guardian = requireGuardian(input.actor);
+    const recordedAt = input.recordedAt ?? new Date();
+    const context = await this.repository.getInstanceForUpdate(
+      guardian.familyId,
+      input.instanceId,
+    );
+
+    if (
+      !context ||
+      !(await this.authorization.canManageActivity(guardian, context.instance.childId))
+    ) {
+      throw new ActivityDomainError('RESOURCE_NOT_FOUND', 'Activity opportunity was not found.');
+    }
+    if (
+      context.instance.status !== 'PENDING' &&
+      context.instance.status !== 'AWAITING_RESOLUTION'
+    ) {
+      throw new ActivityDomainError(
+        'RESOURCE_STATE_CHANGED',
+        'This activity opportunity can no longer be excused.',
+      );
+    }
+    if (
+      input.expectedVersion !== undefined &&
+      input.expectedVersion !== context.instance.version
+    ) {
+      throw new ActivityDomainError('STALE_VERSION', 'This activity changed on another device.');
+    }
+
+    const updated = await this.repository.updateInstanceStatus(
+      guardian.familyId,
+      context.instance.id,
+      context.instance.version,
+      [context.instance.status],
+      'EXCUSED',
+      recordedAt,
+    );
+    if (!updated) {
+      throw new ActivityDomainError('STALE_VERSION', 'This activity changed on another device.');
+    }
+
+    await this.repository.appendDomainEvent({
+      id: newId<'DomainEventId'>() as DomainEventId,
+      familyId: guardian.familyId,
+      type: 'ActivityExcused',
+      aggregateType: 'ActivityInstance',
+      aggregateId: updated.id,
+      occurredAt: recordedAt,
+      recordedAt,
+      payload: {
+        activityInstanceId: updated.id,
+        childId: updated.childId,
+      },
+    });
+
+    return updated;
   }
 
   async getParentHistory(actor: ActorContext, childId: ChildId, limit = 10) {
@@ -369,6 +555,35 @@ export class ActivityService {
       throw new ActivityDomainError('RESOURCE_NOT_FOUND', 'Child profile was not found.');
     }
     return this.repository.listCompletionHistory(guardian.familyId, childId, limit);
+  }
+
+  async getParentMakeBedInsight(
+    actor: ActorContext,
+    childId: ChildId,
+    now = new Date(),
+  ): Promise<ParentMakeBedInsightDto | null> {
+    const guardian = requireGuardian(actor);
+    if (!(await this.authorization.canManageActivity(guardian, childId))) {
+      throw new ActivityDomainError('RESOURCE_NOT_FOUND', 'Child profile was not found.');
+    }
+
+    const assignment = await this.repository.findActiveAssignmentByTemplate(
+      guardian.familyId,
+      childId,
+      'SELF_MAKE_BED',
+    );
+    if (!assignment) return null;
+
+    const evidence = await this.repository.listProgressEvidence(
+      guardian.familyId,
+      assignment.id,
+      now,
+    );
+
+    return {
+      assignmentId: assignment.id,
+      metrics: calculateActivityProgress(evidence),
+    };
   }
 
   private async materializeAssignmentForDate(assignment: ActivityAssignment, date: string) {
@@ -380,7 +595,7 @@ export class ActivityService {
       opportunityEndOffsetMinutes: assignment.opportunityEndOffsetMinutes,
     });
 
-    return this.repository.ensureInstance({
+    const instance = await this.repository.ensureInstance({
       id: newId<'ActivityInstanceId'>() as ActivityInstanceId,
       familyId: assignment.familyId,
       childId: assignment.childId,
@@ -389,5 +604,26 @@ export class ActivityService {
       status: 'PENDING',
       version: 1,
     });
+
+    const scheduledFor = scheduledSystemReminderAt(
+      instance.targetAt,
+      assignment.reminderPolicy,
+    );
+    if (scheduledFor) {
+      const reminder: ReminderRecord = {
+        id: newId<'ReminderRecordId'>() as ReminderRecordId,
+        familyId: instance.familyId,
+        activityInstanceId: instance.id,
+        source: 'SYSTEM',
+        kind: 'ACTIVITY',
+        scheduledFor,
+        attemptedAt: null,
+        deliveredAt: null,
+        acknowledgedAt: null,
+      };
+      await this.repository.ensureReminder(reminder);
+    }
+
+    return instance;
   }
 }
