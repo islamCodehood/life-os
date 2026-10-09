@@ -119,7 +119,7 @@ export default async function ParentShellPage({ params }: { params: Promise<{ lo
         messages={activityMessages}
         locale={locale}
       />
-      <ParentGraduationPanel children={pilotChildren} messages={activityMessages} />
+      <ParentGraduationPanel childProfiles={pilotChildren} messages={activityMessages} />
     </main>
   );
 }
