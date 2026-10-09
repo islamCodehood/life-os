@@ -169,6 +169,15 @@ export class PostgresGraduationRepository implements GraduationRepository {
     return row ? record(row) : null;
   }
 
+  async listChildGraduatedForRecord(familyId: FamilyId, recordId: string) {
+    const [row] = await this.db.select().from(s.graduationRecords).where(and(
+      eq(s.graduationRecords.familyId, familyId),
+      eq(s.graduationRecords.id, recordId),
+      eq(s.graduationRecords.status, 'GRADUATED'),
+    )).limit(1);
+    return row ? record(row) : null;
+  }
+
   async listChildGraduated(familyId: FamilyId, childId: ChildId) {
     const rows = await this.db.select({
       graduation: s.graduationRecords, title: s.activityDefinitions.title,
