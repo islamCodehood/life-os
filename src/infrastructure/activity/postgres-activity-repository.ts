@@ -656,6 +656,7 @@ export class PostgresActivityRepository implements ActivityRepository {
       const instance = instanceRow(row.instance);
       return {
         instanceId: instance.id,
+        version: instance.version,
         status: instance.status,
         targetAt: instance.targetAt,
         opportunityEndsAt: instance.opportunityEndsAt,
