@@ -3,6 +3,7 @@ import { deliveredRemindersBefore, isExternalReminderSource } from './reminder';
 
 export interface ActivityOpportunityEvidence {
   instanceId: string;
+  version: number;
   status: ActivityInstanceStatus;
   targetAt: Date;
   opportunityEndsAt: Date;
