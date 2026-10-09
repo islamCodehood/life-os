@@ -165,3 +165,39 @@ export const completionRecords = lifeOsSchema.table(
     }).onDelete('cascade'),
   ],
 );
+
+
+export const reminderRecords = lifeOsSchema.table(
+  'reminder_records',
+  {
+    id: uuid('id').primaryKey(),
+    familyId: uuid('family_id')
+      .notNull()
+      .references(() => families.id, { onDelete: 'cascade' }),
+    activityInstanceId: uuid('activity_instance_id').notNull(),
+    source: text('source').notNull(),
+    kind: text('kind').notNull(),
+    scheduledFor: timestamp('scheduled_for', { withTimezone: true }).notNull(),
+    attemptedAt: timestamp('attempted_at', { withTimezone: true }),
+    deliveredAt: timestamp('delivered_at', { withTimezone: true }),
+    acknowledgedAt: timestamp('acknowledged_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex('reminder_records_schedule_uidx').on(
+      table.activityInstanceId,
+      table.source,
+      table.kind,
+      table.scheduledFor,
+    ),
+    index('reminder_records_family_instance_idx').on(
+      table.familyId,
+      table.activityInstanceId,
+    ),
+    foreignKey({
+      columns: [table.activityInstanceId, table.familyId],
+      foreignColumns: [activityInstances.id, activityInstances.familyId],
+      name: 'reminder_instance_family_fk',
+    }).onDelete('cascade'),
+  ],
+);
