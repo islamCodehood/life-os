@@ -178,7 +178,7 @@ export function ParentMakeBedPanel({ childProfiles, messages, locale }: ParentMa
               </dl>
 
               <p>
-                {child.insight.metrics.coverageAllowsReadinessEvaluation
+                {child.insight.metrics.coverageComplete
                   ? messages.evidenceComplete
                   : messages.keepObserving}
               </p>
