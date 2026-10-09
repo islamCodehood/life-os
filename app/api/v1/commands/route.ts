@@ -11,7 +11,12 @@ import { Argon2PinHasher } from '@/src/infrastructure/auth/argon2-pin-hasher';
 import { e1CommandSchema } from '@/src/application/identity/e1-command-schema';
 import { FamilyIdentityService } from '@/src/application/identity/family-identity-service';
 import { currentDateInTimezone } from '@/src/application/identity/current-date';
-import type { ActivityAssignmentId, ActivityInstanceId, ChildId, DeviceId } from '@/src/domain/shared/id';
+import type {
+  ActivityAssignmentId,
+  ActivityInstanceId,
+  ChildId,
+  DeviceId,
+} from '@/src/domain/shared/id';
 import { PostgresActivityRepository } from '@/src/infrastructure/activity/postgres-activity-repository';
 import { authCookieNames } from '@/src/infrastructure/auth/cookies';
 import { createIdentityRuntime } from '@/src/infrastructure/composition/identity-runtime';
@@ -151,11 +156,15 @@ export async function POST(request: Request) {
                 resourceId: assigned.assignment.id,
                 version: assigned.assignment.version,
               },
-              ...(assigned.instance ? [{
-                resourceType: 'ActivityInstance',
-                resourceId: assigned.instance.id,
-                version: assigned.instance.version,
-              }] : []),
+              ...(assigned.instance
+                ? [
+                    {
+                      resourceType: 'ActivityInstance',
+                      resourceId: assigned.instance.id,
+                      version: assigned.instance.version,
+                    },
+                  ]
+                : []),
             ];
             break;
           }
@@ -233,7 +242,11 @@ export async function POST(request: Request) {
             break;
           }
           case 'RequestGraduationReview': {
-            const review = await graduations.requestReview(actor, command.payload.assignmentId as ActivityAssignmentId, serverNow);
+            const review = await graduations.requestReview(
+              actor,
+              command.payload.assignmentId as ActivityAssignmentId,
+              serverNow,
+            );
             data = { suggestionId: review.id, status: review.status, origin: review.origin };
             break;
           }
@@ -241,54 +254,74 @@ export async function POST(request: Request) {
           case 'DeclineGraduation':
           case 'SnoozeGraduation': {
             const result = await graduations.decideGraduation({
-              actor, suggestionId: command.payload.suggestionId,
-              decision: command.type === 'ApproveGraduation' ? 'APPROVE'
-                : command.type === 'DeclineGraduation' ? 'DECLINE' : 'SNOOZE',
+              actor,
+              suggestionId: command.payload.suggestionId,
+              decision:
+                command.type === 'ApproveGraduation'
+                  ? 'APPROVE'
+                  : command.type === 'DeclineGraduation'
+                    ? 'DECLINE'
+                    : 'SNOOZE',
               expectedVersion: command.expectedVersions?.find(
                 (entry) => entry.resourceType === 'ActivityAssignment',
               )?.version,
-              ...(command.type === 'ApproveGraduation' ? {
-                monitoringIntervalDays: command.payload.monitoringIntervalDays,
-              } : {}),
-              occurredAt: new Date(command.occurredAt), now: serverNow,
+              ...(command.type === 'ApproveGraduation'
+                ? {
+                    monitoringIntervalDays: command.payload.monitoringIntervalDays,
+                  }
+                : {}),
+              occurredAt: new Date(command.occurredAt),
+              now: serverNow,
             });
             data = {
-              suggestionId: result.suggestion.id, status: result.suggestion.status,
+              suggestionId: result.suggestion.id,
+              status: result.suggestion.status,
               assignmentStatus: result.assignment.status,
               graduationRecordId: result.graduation?.id ?? null,
             };
-            resourceVersions = [{
-              resourceType: 'ActivityAssignment', resourceId: result.assignment.id,
-              version: result.assignment.version,
-            }];
+            resourceVersions = [
+              {
+                resourceType: 'ActivityAssignment',
+                resourceId: result.assignment.id,
+                version: result.assignment.version,
+              },
+            ];
             break;
           }
           case 'RecordGraduatedObservation': {
             data = await graduations.recordObservation({
-              actor, graduationRecordId: command.payload.graduationRecordId,
+              actor,
+              graduationRecordId: command.payload.graduationRecordId,
               result: command.payload.result,
-              occurredAt: new Date(command.occurredAt), now: serverNow,
+              occurredAt: new Date(command.occurredAt),
+              now: serverNow,
             });
             break;
           }
           case 'ApproveReactivation':
           case 'DeclineReactivation': {
             const result = await graduations.decideReactivation({
-              actor, suggestionId: command.payload.suggestionId,
+              actor,
+              suggestionId: command.payload.suggestionId,
               decision: command.type === 'ApproveReactivation' ? 'APPROVE' : 'DECLINE',
               expectedVersion: command.expectedVersions?.find(
                 (entry) => entry.resourceType === 'ActivityAssignment',
               )?.version,
-              occurredAt: new Date(command.occurredAt), now: serverNow,
+              occurredAt: new Date(command.occurredAt),
+              now: serverNow,
             });
             data = {
-              suggestionId: result.suggestion.id, status: result.suggestion.status,
+              suggestionId: result.suggestion.id,
+              status: result.suggestion.status,
               assignmentStatus: result.assignment.status,
             };
-            resourceVersions = [{
-              resourceType: 'ActivityAssignment', resourceId: result.assignment.id,
-              version: result.assignment.version,
-            }];
+            resourceVersions = [
+              {
+                resourceType: 'ActivityAssignment',
+                resourceId: result.assignment.id,
+                version: result.assignment.version,
+              },
+            ];
             break;
           }
         }

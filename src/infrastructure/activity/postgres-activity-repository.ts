@@ -236,11 +236,7 @@ export class PostgresActivityRepository implements ActivityRepository {
     return row ? assignmentRow(row.assignment) : null;
   }
 
-  async findAssignedByTemplate(
-    familyId: FamilyId,
-    childId: ChildId,
-    key: ActivityTemplateKey,
-  ) {
+  async findAssignedByTemplate(familyId: FamilyId, childId: ChildId, key: ActivityTemplateKey) {
     const [row] = await this.db
       .select({ assignment: schema.activityAssignments })
       .from(schema.activityAssignments)

@@ -130,9 +130,10 @@ export class ActivityService {
       'SELF_MAKE_BED',
     );
     if (existing) {
-      const instance = existing.status === 'ACTIVE'
-        ? await this.materializeAssignmentForDate(existing, existing.activeFrom)
-        : null;
+      const instance =
+        existing.status === 'ACTIVE'
+          ? await this.materializeAssignmentForDate(existing, existing.activeFrom)
+          : null;
       return { assignment: existing, instance, created: false };
     }
 
@@ -331,7 +332,10 @@ export class ActivityService {
     }
 
     if (context.assignment.status !== 'ACTIVE') {
-      throw new ActivityDomainError('RESOURCE_STATE_CHANGED', 'This responsibility is no longer in daily tracking.');
+      throw new ActivityDomainError(
+        'RESOURCE_STATE_CHANGED',
+        'This responsibility is no longer in daily tracking.',
+      );
     }
 
     if (context.instance.status === 'COMPLETED') {

@@ -9,7 +9,11 @@ import { AppError, toApiError } from './errors';
 export function errorResponse(error: unknown, requestId: string) {
   let mapped = error;
 
-  if (error instanceof ActivityDomainError || error instanceof GraduationDomainError || error instanceof IdentityDomainError) {
+  if (
+    error instanceof ActivityDomainError ||
+    error instanceof GraduationDomainError ||
+    error instanceof IdentityDomainError
+  ) {
     mapped = new AppError(error.code, error.message);
   } else if (error instanceof GuardianAuthenticationError) {
     mapped = new AppError('AUTH_REQUIRED', 'Guardian authentication failed.');

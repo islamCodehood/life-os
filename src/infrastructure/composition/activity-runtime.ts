@@ -9,7 +9,11 @@ export async function createActivityRuntime() {
   const identity = await createIdentityRuntime();
   const repository = new PostgresActivityRepository(getDatabase().db);
   const activities = new ActivityService(repository, identity.repository, identity.authorization);
-  const graduations = new GraduationService(new PostgresGraduationRepository(getDatabase().db), repository, identity.repository);
+  const graduations = new GraduationService(
+    new PostgresGraduationRepository(getDatabase().db),
+    repository,
+    identity.repository,
+  );
 
   return {
     ...identity,
