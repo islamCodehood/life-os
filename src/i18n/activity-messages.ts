@@ -36,7 +36,8 @@ const messages = {
     averageReminders: 'Average reminders / opportunity',
     onTimeRate: 'On-time rate',
     dataCoverage: 'Data coverage',
-    evidenceComplete: 'All observed opportunities are resolved. More observation may still be needed before any readiness suggestion.',
+    evidenceComplete:
+      'All observed opportunities are resolved. More observation may still be needed before any readiness suggestion.',
     keepObserving: 'Keep observing — coverage is incomplete, so no readiness claim is made.',
     recoveryTitle: 'Recovery',
     recoveryOpen: 'Waiting to see the return after the latest confirmed miss.',
@@ -84,7 +85,8 @@ const messages = {
     averageReminders: 'متوسط التذكيرات لكل فرصة',
     onTimeRate: 'الإنجاز في الوقت',
     dataCoverage: 'اكتمال البيانات',
-    evidenceComplete: 'تم تحديد حالة كل الفرص المرصودة. قد نحتاج إلى ملاحظات أكثر قبل أي اقتراح للجاهزية.',
+    evidenceComplete:
+      'تم تحديد حالة كل الفرص المرصودة. قد نحتاج إلى ملاحظات أكثر قبل أي اقتراح للجاهزية.',
     keepObserving: 'نواصل الملاحظة — البيانات غير مكتملة، لذلك لا نستنتج جاهزية الآن.',
     recoveryTitle: 'العودة بعد التعثر',
     recoveryOpen: 'ننتظر رؤية العودة بعد آخر فرصة فائتة مؤكدة.',
