@@ -159,9 +159,10 @@ class InMemoryActivityRepository implements ActivityRepository {
     familyId: FamilyId,
     instanceId: ActivityInstanceId,
     expectedVersion: number,
-    _updatedAt: Date,
+    updatedAt: Date,
     allowedStatuses: ActivityInstanceStatus[] = ['PENDING'],
   ) {
+    void updatedAt;
     const instance = this.instances.get(instanceId);
     if (
       !instance ||
@@ -182,8 +183,9 @@ class InMemoryActivityRepository implements ActivityRepository {
     expectedVersion: number,
     allowedStatuses: ActivityInstanceStatus[],
     status: ActivityInstanceStatus,
-    _updatedAt: Date,
+    updatedAt: Date,
   ) {
+    void updatedAt;
     const instance = this.instances.get(instanceId);
     if (
       !instance ||
