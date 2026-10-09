@@ -87,7 +87,10 @@ export class GraduationService {
     const { owner, assignment } = await this.assignmentForGuardian(actor, assignmentId);
     const pilot = await this.repository.getMakeBedAssignment(owner.familyId, assignment.childId);
     if (!pilot || pilot.id !== assignment.id) {
-      throw new GraduationDomainError('DOMAIN_RULE_VIOLATION', 'E5 currently supports the Make Bed responsibility only.');
+      throw new GraduationDomainError(
+        'DOMAIN_RULE_VIOLATION',
+        'E5 currently supports the Make Bed responsibility only.',
+      );
     }
     if (assignment.status !== 'ACTIVE') {
       throw new GraduationDomainError(
