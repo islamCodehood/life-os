@@ -186,7 +186,7 @@ describe('E4 activity progress evidence', () => {
     expect(metrics.onTimeRate).toBe(1);
     expect(metrics.latestRecoveryLatency).toBe(1);
     expect(metrics.recoveredOnNextOpportunity).toBe(true);
-    expect(metrics.coverageAllowsReadinessEvaluation).toBe(false);
+    expect(metrics.coverageComplete).toBe(false);
   });
 
   it('counts recovery in valid opportunities rather than calendar days', () => {
