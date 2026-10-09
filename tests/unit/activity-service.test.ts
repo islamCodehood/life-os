@@ -566,7 +566,7 @@ describe('ActivityService Make Bed pilot', () => {
       missedOpportunities: 0,
       unresolvedOpportunities: 1,
       dataCoverage: 0,
-      coverageAllowsReadinessEvaluation: false,
+      coverageComplete: false,
     });
   });
 
