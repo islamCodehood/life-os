@@ -5,6 +5,9 @@ import { e2CommandSchema } from '@/src/application/activity/e2-command-schema';
 import { e4CommandSchema } from '@/src/application/activity/e4-command-schema';
 import { e5CommandSchema } from '@/src/application/graduation/e5-command-schema';
 import { e6CommandSchema } from '@/src/application/growth/e6-command-schema';
+import { e7CommandSchema } from '@/src/application/goals/e7-command-schema';
+import { GoalService } from '@/src/application/goals/goal-service';
+import { PostgresGoalRepository } from '@/src/infrastructure/goals/postgres-goal-repository';
 import { PostgresXpRepository } from '@/src/infrastructure/growth/postgres-xp-repository';
 import { GraduationService } from '@/src/application/graduation/graduation-service';
 import { PostgresGraduationRepository } from '@/src/infrastructure/graduation/postgres-graduation-repository';
@@ -34,6 +37,7 @@ const commandSchema = z.union([
   e4CommandSchema,
   e5CommandSchema,
   e6CommandSchema,
+  e7CommandSchema,
 ]);
 
 type CommandResponse = {
@@ -85,6 +89,11 @@ export async function POST(request: Request) {
           new PostgresXpRepository(db),
         );
 
+        const goals = new GoalService(
+          new PostgresGoalRepository(db),
+          identityRepository,
+          activityRepository,
+        );
         const graduations = new GraduationService(
           new PostgresGraduationRepository(db),
           activityRepository,
@@ -285,6 +294,94 @@ export async function POST(request: Request) {
                 version: updated.version,
               },
             ];
+            break;
+          }
+          case 'CreateGoal': {
+            const goal = await goals.create(actor, {
+              ...command.payload,
+              occurredAt: new Date(command.occurredAt),
+              now: serverNow,
+            });
+            data = { goalId: goal.id, status: goal.status, version: goal.version };
+            resourceVersions = [
+              { resourceType: 'Goal', resourceId: goal.id, version: goal.version },
+            ];
+            break;
+          }
+          case 'ApproveGoal':
+          case 'PauseGoal':
+          case 'ResumeGoal':
+          case 'AchieveGoal':
+          case 'CloseGoal': {
+            const status =
+              command.type === 'ApproveGoal' || command.type === 'ResumeGoal'
+                ? 'ACTIVE'
+                : command.type === 'PauseGoal'
+                  ? 'PAUSED'
+                  : command.type === 'AchieveGoal'
+                    ? 'ACHIEVED'
+                    : 'CLOSED';
+            const updated = await goals.transition(actor, {
+              id: command.payload.goalId,
+              to: status,
+              expectedVersion: command.expectedVersions?.find(
+                (v) => v.resourceType === 'Goal' && v.resourceId === command.payload.goalId,
+              )?.version,
+              occurredAt: new Date(command.occurredAt),
+              now: serverNow,
+            });
+            data = { goalId: updated.id, status: updated.status };
+            resourceVersions = [
+              { resourceType: 'Goal', resourceId: updated.id, version: updated.version },
+            ];
+            break;
+          }
+          case 'AddGoalProgress': {
+            const result = await goals.addProgress(actor, {
+              id: command.payload.goalId,
+              amount: command.payload.amount,
+              step: command.payload.step,
+              expectedVersion: command.expectedVersions?.find(
+                (v) => v.resourceType === 'Goal' && v.resourceId === command.payload.goalId,
+              )?.version,
+              occurredAt: new Date(command.occurredAt),
+              now: serverNow,
+            });
+            data = {
+              goalId: result.goal.id,
+              progress: result.goal.progress,
+              progressEntryId: result.entryId,
+            };
+            resourceVersions = [
+              { resourceType: 'Goal', resourceId: result.goal.id, version: result.goal.version },
+            ];
+            break;
+          }
+          case 'ReviseGoal': {
+            const updated = await goals.revise(actor, {
+              id: command.payload.goalId,
+              target: command.payload.target,
+              targetDate: command.payload.targetDate,
+              reason: command.payload.reason,
+              expectedVersion: command.expectedVersions?.find(
+                (v) => v.resourceType === 'Goal' && v.resourceId === command.payload.goalId,
+              )?.version,
+              occurredAt: new Date(command.occurredAt),
+              now: serverNow,
+            });
+            data = { goalId: updated.id, target: updated.target, targetDate: updated.targetDate };
+            resourceVersions = [
+              { resourceType: 'Goal', resourceId: updated.id, version: updated.version },
+            ];
+            break;
+          }
+          case 'RecordGoalReflection': {
+            data = await goals.reflect(actor, {
+              id: command.payload.goalId,
+              text: command.payload.text,
+              occurredAt: new Date(command.occurredAt),
+              now: serverNow,
+            });
             break;
           }
           case 'RequestGraduationReview': {

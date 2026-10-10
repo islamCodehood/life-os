@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { ZodError } from 'zod';
 import { ActivityDomainError } from '@/src/application/activity/activity-service';
 import { GraduationDomainError } from '@/src/application/graduation/graduation-service';
+import { GoalDomainError } from '@/src/application/goals/goal-service';
 import { GuardianAuthenticationError } from '@/src/application/auth/guardian-auth-gateway';
 import { IdentityDomainError } from '@/src/application/identity/family-identity-service';
 import { AppError, toApiError } from './errors';
@@ -12,6 +13,7 @@ export function errorResponse(error: unknown, requestId: string) {
   if (
     error instanceof ActivityDomainError ||
     error instanceof GraduationDomainError ||
+    error instanceof GoalDomainError ||
     error instanceof IdentityDomainError
   ) {
     mapped = new AppError(error.code, error.message);

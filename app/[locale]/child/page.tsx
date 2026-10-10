@@ -1,5 +1,7 @@
 import { notFound, redirect } from 'next/navigation';
 import { getActivityMessages } from '@/src/i18n/activity-messages';
+import { getGoalMessages } from '@/src/i18n/goal-messages';
+import { GoalsPanel } from '@/src/ui/goals/GoalsPanel';
 import { getIdentityMessages } from '@/src/i18n/identity-messages';
 import { isLocale } from '@/src/i18n/locales';
 import { currentServerRequest } from '@/src/infrastructure/auth/server-request';
@@ -30,6 +32,14 @@ export default async function ChildShellPage({ params }: { params: Promise<{ loc
   const today = await runtime.activities.getChildToday(actor);
   const graduated = await runtime.graduations.childGraduated(actor);
   const skills = await runtime.activities.getChildSkillProgress(actor, actor.childId);
+  const goalItems = await runtime.goals.listVisible(actor);
+  const goalHistory = Object.fromEntries(
+    await Promise.all(
+      goalItems.map(
+        async (item) => [item.id, await runtime.goals.history(actor, item.id)] as const,
+      ),
+    ),
+  );
   const actorScope = childOfflineActorScope({
     familyId: actor.familyId,
     childId: actor.childId,
@@ -54,6 +64,14 @@ export default async function ChildShellPage({ params }: { params: Promise<{ loc
       />
       <ChildGraduatedResponsibilities items={graduated} messages={activityMessages} />
       <ChildSkillProgress skills={skills} messages={activityMessages} />
+      <GoalsPanel
+        mode="CHILD"
+        childId={actor.childId}
+        goals={goalItems}
+        history={goalHistory}
+        childProfiles={[]}
+        messages={getGoalMessages(locale)}
+      />
     </main>
   );
 }
