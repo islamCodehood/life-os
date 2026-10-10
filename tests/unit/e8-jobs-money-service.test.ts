@@ -206,7 +206,6 @@ function setup() {
 function action(
   job: Job,
   kind: 'ACCEPT' | 'START' | 'SUBMIT' | 'APPROVE' | 'CREDIT' | 'REQUEST_REVISION' | 'RESTART',
-  actor: ActorContext = guardian,
 ) {
   return { jobId: job.id, action: kind, expectedVersion: job.version, occurredAt: now, now, actor };
 }
@@ -231,27 +230,27 @@ describe('E8 job-to-money end-to-end domain services', () => {
       }),
     ).rejects.toMatchObject({ code: 'RESOURCE_STATE_CHANGED' });
     await expect(
-      f.jobs.action({ ...action(offered, 'APPROVE'), actor: child }),
+      f.jobs.action(child, action(offered, 'APPROVE')),
     ).rejects.toMatchObject({ code: 'FORBIDDEN' });
     await expect(
-      f.jobs.action({ ...action(offered, 'ACCEPT'), actor: sibling }),
+      f.jobs.action(sibling, action(offered, 'ACCEPT')),
     ).rejects.toMatchObject({ code: 'RESOURCE_NOT_FOUND' });
-    const accepted = await f.jobs.action({ ...action(offered, 'ACCEPT'), actor: child });
-    const started = await f.jobs.action({ ...action(accepted, 'START'), actor: child });
-    const submitted = await f.jobs.action({ ...action(started, 'SUBMIT'), actor: child });
+    const accepted = await f.jobs.action(child, action(offered, 'ACCEPT'));
+    const started = await f.jobs.action(child, action(accepted, 'START'));
+    const submitted = await f.jobs.action(child, action(started, 'SUBMIT'));
     expect((await f.money.view(child, childId)).balances.unallocated).toBe('0');
-    const approved = await f.jobs.action(action(submitted, 'APPROVE'));
+    const approved = await f.jobs.action(guardian, action(submitted, 'APPROVE'));
     expect(approved.status).toBe('AWAITING_CREDIT');
     expect((await f.money.view(child, childId)).balances.unallocated).toBe('0');
     await expect(
-      f.jobs.action({ ...action(approved, 'CREDIT'), actor: child }),
+      f.jobs.action(child, action(approved, 'CREDIT')),
     ).rejects.toMatchObject({ code: 'FORBIDDEN' });
-    const credited = await f.jobs.action(action(approved, 'CREDIT'));
+    const credited = await f.jobs.action(guardian, action(approved, 'CREDIT'));
     expect(credited.status).toBe('CREDITED');
     expect((await f.money.view(child, childId)).balances.unallocated).toBe('10000');
     expect(f.moneyRepo.transactions).toHaveLength(1);
     expect(f.moneyRepo.transactions[0]?.postings.reduce((sum, p) => sum + p.amount, 0n)).toBe(0n);
-    await expect(f.jobs.action(action(approved, 'CREDIT'))).rejects.toMatchObject({
+    await expect(f.jobs.action(guardian, action(approved, 'CREDIT'))).rejects.toMatchObject({
       code: 'STALE_VERSION',
     });
     expect(f.moneyRepo.transactions).toHaveLength(1);
@@ -265,7 +264,7 @@ describe('E8 job-to-money end-to-end domain services', () => {
       paymentMinor: '5000',
       now,
     });
-    const accepted = await f.jobs.action({ ...action(offered, 'ACCEPT'), actor: child });
+    const accepted = await f.jobs.action(child, action(offered, 'ACCEPT'));
     const revised = await f.jobs.revise(guardian, {
       jobId: accepted.id,
       criteria: 'Organize five files',
@@ -278,9 +277,9 @@ describe('E8 job-to-money end-to-end domain services', () => {
     expect(revised.termsVersion).toBe(2);
     expect(revised.acceptedTermsVersion).toBeNull();
     expect(f.jobRepo.revisions).toHaveLength(1);
-    const reaccepted = await f.jobs.action({ ...action(revised, 'ACCEPT'), actor: child });
+    const reaccepted = await f.jobs.action(child, action(revised, 'ACCEPT'));
     expect(reaccepted.acceptedTermsVersion).toBe(2);
-    const inProgress = await f.jobs.action({ ...action(reaccepted, 'START'), actor: child });
+    const inProgress = await f.jobs.action(child, action(reaccepted, 'START'));
     await expect(
       f.jobs.revise(guardian, {
         jobId: inProgress.id,
@@ -291,9 +290,9 @@ describe('E8 job-to-money end-to-end domain services', () => {
         now,
       }),
     ).rejects.toMatchObject({ code: 'RESOURCE_STATE_CHANGED' });
-    const submitted = await f.jobs.action({ ...action(inProgress, 'SUBMIT'), actor: child });
-    const approved = await f.jobs.action(action(submitted, 'APPROVE'));
-    await f.jobs.action(action(approved, 'CREDIT'));
+    const submitted = await f.jobs.action(child, action(inProgress, 'SUBMIT'));
+    const approved = await f.jobs.action(guardian, action(submitted, 'APPROVE'));
+    await f.jobs.action(guardian, action(approved, 'CREDIT'));
     expect((await f.money.view(child, childId)).balances.unallocated).toBe('2500');
   });
   it('allocation sums, spending, giving, corrections and access permissions', async () => {
