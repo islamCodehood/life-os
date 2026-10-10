@@ -88,19 +88,34 @@ export default async function ParentShellPage({ params }: { params: Promise<{ lo
   );
 
   const growthChildren = await Promise.all(
-    childProfiles.map(async child => {
+    childProfiles.map(async (child) => {
       const [reading, chess, skills, xpEntries] = await Promise.all([
-        runtime.activityRepository.findActiveAssignmentByTemplate(actor.familyId,child.id,'GROWTH_READING'),
-        runtime.activityRepository.findActiveAssignmentByTemplate(actor.familyId,child.id,'GROWTH_CHESS_PRACTICE'),
-        runtime.activities.getChildSkillProgress(actor,child.id),
-        runtime.activities.getParentXpHistory(actor,child.id),
+        runtime.activityRepository.findActiveAssignmentByTemplate(
+          actor.familyId,
+          child.id,
+          'GROWTH_READING',
+        ),
+        runtime.activityRepository.findActiveAssignmentByTemplate(
+          actor.familyId,
+          child.id,
+          'GROWTH_CHESS_PRACTICE',
+        ),
+        runtime.activities.getChildSkillProgress(actor, child.id),
+        runtime.activities.getParentXpHistory(actor, child.id),
       ]);
       return {
-        id:child.id,displayName:child.displayName,
-        readingAssigned:reading!==null,chessAssigned:chess!==null,skills,
-        xpHistory:xpEntries.map(entry=>({
-          id:entry.id,skillKey:entry.skillKey,entryType:entry.entryType,amount:entry.amount,
-          correctionOf:entry.correctionOf,occurredAt:entry.occurredAt.toISOString(),
+        id: child.id,
+        displayName: child.displayName,
+        readingAssigned: reading !== null,
+        chessAssigned: chess !== null,
+        skills,
+        xpHistory: xpEntries.map((entry) => ({
+          id: entry.id,
+          skillKey: entry.skillKey,
+          entryType: entry.entryType,
+          amount: entry.amount,
+          correctionOf: entry.correctionOf,
+          occurredAt: entry.occurredAt.toISOString(),
         })),
       };
     }),

@@ -28,7 +28,13 @@ import { AppError } from '@/src/infrastructure/http/errors';
 import { createRequestId } from '@/src/infrastructure/http/request-id';
 import { errorResponse } from '@/src/infrastructure/http/route-error';
 
-const commandSchema = z.union([e1CommandSchema, e2CommandSchema, e4CommandSchema, e5CommandSchema, e6CommandSchema]);
+const commandSchema = z.union([
+  e1CommandSchema,
+  e2CommandSchema,
+  e4CommandSchema,
+  e5CommandSchema,
+  e6CommandSchema,
+]);
 
 type CommandResponse = {
   commandId: string;
@@ -173,20 +179,37 @@ export async function POST(request: Request) {
           }
           case 'AssignGrowthPractice': {
             const assigned = await activities.assignGrowthPractice(
-              actor, command.payload.childId as ChildId, command.payload.templateKey, serverNow,
+              actor,
+              command.payload.childId as ChildId,
+              command.payload.templateKey,
+              serverNow,
             );
-            data = { assignmentId:assigned.assignment.id, instanceId:assigned.instance.id, created:assigned.created };
-            resourceVersions = [{
-              resourceType:'ActivityAssignment',resourceId:assigned.assignment.id,version:assigned.assignment.version,
-            },{
-              resourceType:'ActivityInstance',resourceId:assigned.instance.id,version:assigned.instance.version,
-            }];
+            data = {
+              assignmentId: assigned.assignment.id,
+              instanceId: assigned.instance.id,
+              created: assigned.created,
+            };
+            resourceVersions = [
+              {
+                resourceType: 'ActivityAssignment',
+                resourceId: assigned.assignment.id,
+                version: assigned.assignment.version,
+              },
+              {
+                resourceType: 'ActivityInstance',
+                resourceId: assigned.instance.id,
+                version: assigned.instance.version,
+              },
+            ];
             break;
           }
           case 'CorrectXpGrant': {
             data = await activities.correctXpGrant({
-              actor, xpEntryId:command.payload.xpEntryId, reason:command.payload.reason,
-              occurredAt:new Date(command.occurredAt), recordedAt:serverNow,
+              actor,
+              xpEntryId: command.payload.xpEntryId,
+              reason: command.payload.reason,
+              occurredAt: new Date(command.occurredAt),
+              recordedAt: serverNow,
             });
             break;
           }

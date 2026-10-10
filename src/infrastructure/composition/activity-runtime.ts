@@ -9,7 +9,12 @@ import { createIdentityRuntime } from './identity-runtime';
 export async function createActivityRuntime() {
   const identity = await createIdentityRuntime();
   const repository = new PostgresActivityRepository(getDatabase().db);
-  const activities = new ActivityService(repository, identity.repository, identity.authorization, new PostgresXpRepository(getDatabase().db));
+  const activities = new ActivityService(
+    repository,
+    identity.repository,
+    identity.authorization,
+    new PostgresXpRepository(getDatabase().db),
+  );
   const graduations = new GraduationService(
     new PostgresGraduationRepository(getDatabase().db),
     repository,

@@ -13,7 +13,10 @@ import type {
 } from '@/src/domain/activity/entities';
 import { resolveActivityPolicy } from '@/src/domain/activity/policy';
 import {
-  awardForCompletion, growthTemplateConfig, isGrowthTemplate, skillProgressFromLedger,
+  awardForCompletion,
+  growthTemplateConfig,
+  isGrowthTemplate,
+  skillProgressFromLedger,
   type GrowthTemplateKey,
 } from '@/src/domain/growth/skill-xp';
 import type { XpRepository } from '@/src/application/growth/xp-repository';
@@ -226,7 +229,10 @@ export class ActivityService {
   }
 
   async assignGrowthPractice(
-    actor: ActorContext, childId: ChildId, templateKey: GrowthTemplateKey, now = new Date(),
+    actor: ActorContext,
+    childId: ChildId,
+    templateKey: GrowthTemplateKey,
+    now = new Date(),
   ) {
     const guardian = requireGuardian(actor);
     const child = await this.identityRepository.getChild(guardian.familyId, childId);
@@ -259,10 +265,7 @@ export class ActivityService {
     if (!template) {
       throw new ActivityDomainError('RESOURCE_NOT_FOUND', 'Growth template was not seeded.');
     }
-    if (
-      template.category !== 'GROWTH' ||
-      template.defaultScheduleRrule !== 'FREQ=DAILY'
-    ) {
+    if (template.category !== 'GROWTH' || template.defaultScheduleRrule !== 'FREQ=DAILY') {
       throw new ActivityDomainError(
         'DOMAIN_RULE_VIOLATION',
         'Growth template does not match growth practice policy.',
@@ -547,16 +550,26 @@ export class ActivityService {
     });
 
     const xpAward = awardForCompletion({
-      templateKey: context.definition.templateKey, category: context.definition.category,
-      xpMode: context.assignment.xpMode, xpAmount: context.assignment.xpAmount,
+      templateKey: context.definition.templateKey,
+      category: context.definition.category,
+      xpMode: context.assignment.xpMode,
+      xpAmount: context.assignment.xpAmount,
     });
     if (xpAward) {
-      if (!this.xpRepository) throw new ActivityDomainError('DOMAIN_RULE_VIOLATION', 'XP ledger is not configured.');
+      if (!this.xpRepository)
+        throw new ActivityDomainError('DOMAIN_RULE_VIOLATION', 'XP ledger is not configured.');
       await this.xpRepository.append({
-        id: newId<'XpEntryId'>(), familyId, childId: context.instance.childId,
-        skillKey: xpAward.skillKey, entryType: 'GRANT', amount: xpAward.amount,
-        sourceEventId: completionEventId, correctionOf: null, correctionReason: null,
-        occurredAt: input.occurredAt, recordedAt,
+        id: newId<'XpEntryId'>(),
+        familyId,
+        childId: context.instance.childId,
+        skillKey: xpAward.skillKey,
+        entryType: 'GRANT',
+        amount: xpAward.amount,
+        sourceEventId: completionEventId,
+        correctionOf: null,
+        correctionReason: null,
+        occurredAt: input.occurredAt,
+        recordedAt,
       });
     }
 
@@ -684,53 +697,87 @@ export class ActivityService {
     if (actor.kind === 'SYSTEM' || (actor.kind === 'CHILD' && actor.childId !== childId)) {
       throw new ActivityDomainError('FORBIDDEN', 'Access denied.');
     }
-    if (!await this.identityRepository.getChild(actor.familyId, childId)) {
+    if (!(await this.identityRepository.getChild(actor.familyId, childId))) {
       throw new ActivityDomainError('RESOURCE_NOT_FOUND', 'Child was not found.');
     }
-    if (!this.xpRepository) throw new ActivityDomainError('DOMAIN_RULE_VIOLATION', 'XP ledger is not configured.');
-    return skillProgressFromLedger(await this.xpRepository.listChildEntries(actor.familyId, childId));
+    if (!this.xpRepository)
+      throw new ActivityDomainError('DOMAIN_RULE_VIOLATION', 'XP ledger is not configured.');
+    return skillProgressFromLedger(
+      await this.xpRepository.listChildEntries(actor.familyId, childId),
+    );
   }
 
   async getParentXpHistory(actor: ActorContext, childId: ChildId) {
     const owner = requireGuardian(actor);
-    if (!await this.authorization.canManageActivity(owner, childId)) {
+    if (!(await this.authorization.canManageActivity(owner, childId))) {
       throw new ActivityDomainError('RESOURCE_NOT_FOUND', 'Child was not found.');
     }
-    if (!this.xpRepository) throw new ActivityDomainError('DOMAIN_RULE_VIOLATION', 'XP ledger is not configured.');
+    if (!this.xpRepository)
+      throw new ActivityDomainError('DOMAIN_RULE_VIOLATION', 'XP ledger is not configured.');
     return this.xpRepository.listChildEntries(owner.familyId, childId);
   }
 
   async correctXpGrant(input: {
-    actor: ActorContext; xpEntryId: string; reason: string; occurredAt: Date; recordedAt?: Date;
+    actor: ActorContext;
+    xpEntryId: string;
+    reason: string;
+    occurredAt: Date;
+    recordedAt?: Date;
   }) {
     const owner = requireGuardian(input.actor);
     const recordedAt = input.recordedAt ?? new Date();
-    if (!this.xpRepository) throw new ActivityDomainError('DOMAIN_RULE_VIOLATION', 'XP ledger is not configured.');
+    if (!this.xpRepository)
+      throw new ActivityDomainError('DOMAIN_RULE_VIOLATION', 'XP ledger is not configured.');
     const original = await this.xpRepository.getEntry(owner.familyId, input.xpEntryId);
     if (!original) throw new ActivityDomainError('RESOURCE_NOT_FOUND', 'XP grant was not found.');
-    if (!await this.authorization.canManageActivity(owner, original.childId as ChildId)) {
+    if (!(await this.authorization.canManageActivity(owner, original.childId as ChildId))) {
       throw new ActivityDomainError('RESOURCE_NOT_FOUND', 'XP grant was not found.');
     }
-    if (original.entryType !== 'GRANT' || original.amount <= 0 ||
-        await this.xpRepository.hasCorrection(owner.familyId, original.id)) {
-      throw new ActivityDomainError('RESOURCE_STATE_CHANGED', 'This is not an uncorrected XP grant.');
+    if (
+      original.entryType !== 'GRANT' ||
+      original.amount <= 0 ||
+      (await this.xpRepository.hasCorrection(owner.familyId, original.id))
+    ) {
+      throw new ActivityDomainError(
+        'RESOURCE_STATE_CHANGED',
+        'This is not an uncorrected XP grant.',
+      );
     }
     const reason = input.reason.trim();
-    if (reason.length < 5) throw new ActivityDomainError('DOMAIN_RULE_VIOLATION', 'A meaningful correction reason is required.');
+    if (reason.length < 5)
+      throw new ActivityDomainError(
+        'DOMAIN_RULE_VIOLATION',
+        'A meaningful correction reason is required.',
+      );
     const sourceEventId = newId<'DomainEventId'>() as DomainEventId;
     await this.repository.appendDomainEvent({
-      id:sourceEventId, familyId:owner.familyId, type:'XpGrantCorrected',
-      aggregateType:'XpLedgerEntry', aggregateId:original.id,
-      occurredAt:input.occurredAt, recordedAt,
-      payload:{ childId:original.childId, originalEntryId:original.id, reason },
+      id: sourceEventId,
+      familyId: owner.familyId,
+      type: 'XpGrantCorrected',
+      aggregateType: 'XpLedgerEntry',
+      aggregateId: original.id,
+      occurredAt: input.occurredAt,
+      recordedAt,
+      payload: { childId: original.childId, originalEntryId: original.id, reason },
     });
     await this.xpRepository.append({
-      id:newId<'XpEntryId'>(), familyId:owner.familyId, childId:original.childId,
-      skillKey:original.skillKey,entryType:'CORRECTION',amount:-original.amount,
-      sourceEventId, correctionOf:original.id, correctionReason:reason,
-      occurredAt:input.occurredAt, recordedAt,
+      id: newId<'XpEntryId'>(),
+      familyId: owner.familyId,
+      childId: original.childId,
+      skillKey: original.skillKey,
+      entryType: 'CORRECTION',
+      amount: -original.amount,
+      sourceEventId,
+      correctionOf: original.id,
+      correctionReason: reason,
+      occurredAt: input.occurredAt,
+      recordedAt,
     });
-    return { correctedEntryId:original.id, skillKey:original.skillKey, reversedAmount:original.amount };
+    return {
+      correctedEntryId: original.id,
+      skillKey: original.skillKey,
+      reversedAmount: original.amount,
+    };
   }
 
   async getParentHistory(actor: ActorContext, childId: ChildId, limit = 10) {
