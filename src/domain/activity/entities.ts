@@ -9,7 +9,10 @@ import type {
   ReminderRecordId,
 } from '@/src/domain/shared/id';
 
-export type ActivityTemplateKey = 'SELF_MAKE_BED';
+export type ActivityTemplateKey =
+  | 'SELF_MAKE_BED'
+  | 'GROWTH_READING'
+  | 'GROWTH_CHESS_PRACTICE';
 
 export type ActivityCategory =
   'SELF_RESPONSIBILITY' | 'FAMILY_RESPONSIBILITY' | 'GROWTH' | 'VALUES' | 'FAITH';

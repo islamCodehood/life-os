@@ -46,7 +46,7 @@ function category(value: string): ActivityCategory {
 
 function templateKey(value: string | null): ActivityTemplateKey | null {
   if (value === null) return null;
-  if (value === 'SELF_MAKE_BED') return value;
+  if (value === 'SELF_MAKE_BED' || value === 'GROWTH_READING' || value === 'GROWTH_CHESS_PRACTICE') return value;
   throw new Error(`Unsupported activity template: ${value}`);
 }
 
@@ -90,7 +90,7 @@ function templateRow(row: typeof schema.activityTemplates.$inferSelect): Activit
     throw new Error(`Unsupported activity schedule: ${row.defaultScheduleRrule}`);
   }
   return {
-    key: templateKey(row.key) ?? 'SELF_MAKE_BED',
+    key: templateKey(row.key) ?? (() => { throw new Error('Unknown activity template.'); })(),
     title: row.title,
     description: row.description,
     why: row.why,

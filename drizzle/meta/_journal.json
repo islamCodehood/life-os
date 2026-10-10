@@ -64,6 +64,13 @@
       "when": 1791562000000,
       "tag": "0008_graduation",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1791620000000,
+      "tag": "0009_growth_xp",
+      "breakpoints": true
     }
   ]
 }

@@ -4,6 +4,8 @@ import { ActivityService } from '@/src/application/activity/activity-service';
 import { e2CommandSchema } from '@/src/application/activity/e2-command-schema';
 import { e4CommandSchema } from '@/src/application/activity/e4-command-schema';
 import { e5CommandSchema } from '@/src/application/graduation/e5-command-schema';
+import { e6CommandSchema } from '@/src/application/growth/e6-command-schema';
+import { PostgresXpRepository } from '@/src/infrastructure/growth/postgres-xp-repository';
 import { GraduationService } from '@/src/application/graduation/graduation-service';
 import { PostgresGraduationRepository } from '@/src/infrastructure/graduation/postgres-graduation-repository';
 import { AuthorizationService } from '@/src/application/identity/authorization-service';
@@ -26,7 +28,7 @@ import { AppError } from '@/src/infrastructure/http/errors';
 import { createRequestId } from '@/src/infrastructure/http/request-id';
 import { errorResponse } from '@/src/infrastructure/http/route-error';
 
-const commandSchema = z.union([e1CommandSchema, e2CommandSchema, e4CommandSchema, e5CommandSchema]);
+const commandSchema = z.union([e1CommandSchema, e2CommandSchema, e4CommandSchema, e5CommandSchema, e6CommandSchema]);
 
 type CommandResponse = {
   commandId: string;
@@ -74,6 +76,7 @@ export async function POST(request: Request) {
           activityRepository,
           identityRepository,
           new AuthorizationService(identityRepository),
+          new PostgresXpRepository(db),
         );
 
         const graduations = new GraduationService(
@@ -168,6 +171,25 @@ export async function POST(request: Request) {
             ];
             break;
           }
+          case 'AssignGrowthPractice': {
+            const assigned = await activities.assignGrowthPractice(
+              actor, command.payload.childId as ChildId, command.payload.templateKey, serverNow,
+            );
+            data = { assignmentId:assigned.assignment.id, instanceId:assigned.instance.id, created:assigned.created };
+            resourceVersions = [{
+              resourceType:'ActivityAssignment',resourceId:assigned.assignment.id,version:assigned.assignment.version,
+            },{
+              resourceType:'ActivityInstance',resourceId:assigned.instance.id,version:assigned.instance.version,
+            }];
+            break;
+          }
+          case 'CorrectXpGrant': {
+            data = await activities.correctXpGrant({
+              actor, xpEntryId:command.payload.xpEntryId, reason:command.payload.reason,
+              occurredAt:new Date(command.occurredAt), recordedAt:serverNow,
+            });
+            break;
+          }
           case 'CompleteActivity': {
             const expectedVersion = command.expectedVersions?.find(
               (entry) =>
@@ -185,6 +207,7 @@ export async function POST(request: Request) {
               activityInstanceId: completed.instance.id,
               completionId: completed.completion.id,
               alreadyCompleted: completed.alreadyCompleted,
+              xpAward: completed.alreadyCompleted ? null : completed.xpAward,
             };
             resourceVersions = [
               {
