@@ -2,6 +2,8 @@ import { Button, Card } from '@life-os/design-system';
 import { notFound, redirect } from 'next/navigation';
 import { currentDateInTimezone } from '@/src/application/identity/current-date';
 import { getActivityMessages } from '@/src/i18n/activity-messages';
+import { getGoalMessages } from '@/src/i18n/goal-messages';
+import { GoalsPanel } from '@/src/ui/goals/GoalsPanel';
 import { getIdentityMessages } from '@/src/i18n/identity-messages';
 import { isLocale } from '@/src/i18n/locales';
 import { currentServerRequest } from '@/src/infrastructure/auth/server-request';
@@ -121,6 +123,11 @@ export default async function ParentShellPage({ params }: { params: Promise<{ lo
     }),
   );
 
+  const goalItems = await runtime.goals.listVisible(actor);
+  const goalHistory = Object.fromEntries(await Promise.all(
+    goalItems.map(async item => [item.id, await runtime.goals.history(actor,item.id)] as const),
+  ));
+
   return (
     <main className="lo-app-foundation">
       <section className="lo-app-foundation__hero">
@@ -156,6 +163,11 @@ export default async function ParentShellPage({ params }: { params: Promise<{ lo
       />
       <ParentGraduationPanel childProfiles={pilotChildren} messages={activityMessages} />
       <ParentGrowthPanel childProfiles={growthChildren} messages={activityMessages} />
+      <GoalsPanel
+        mode="GUARDIAN" goals={goalItems} history={goalHistory}
+        childProfiles={childProfiles.map(child=>({id:child.id,displayName:child.displayName}))}
+        messages={getGoalMessages(locale)}
+      />
     </main>
   );
 }
