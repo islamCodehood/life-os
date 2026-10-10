@@ -7,6 +7,7 @@ import { createActivityRuntime } from '@/src/infrastructure/composition/activity
 import { childOfflineActorScope } from '@/src/offline/actor-scope';
 import { ChildTodayResponsibilities } from '@/src/ui/activity/ChildTodayResponsibilities';
 import { ChildGraduatedResponsibilities } from '@/src/ui/graduation/ChildGraduatedResponsibilities';
+import { ChildSkillProgress } from '@/src/ui/growth/ChildSkillProgress';
 
 export const dynamic = 'force-dynamic';
 
@@ -28,6 +29,7 @@ export default async function ChildShellPage({ params }: { params: Promise<{ loc
 
   const today = await runtime.activities.getChildToday(actor);
   const graduated = await runtime.graduations.childGraduated(actor);
+  const skills = await runtime.activities.getChildSkillProgress(actor, actor.childId);
   const actorScope = childOfflineActorScope({
     familyId: actor.familyId,
     childId: actor.childId,
@@ -51,6 +53,7 @@ export default async function ChildShellPage({ params }: { params: Promise<{ loc
         actorScope={actorScope}
       />
       <ChildGraduatedResponsibilities items={graduated} messages={activityMessages} />
+      <ChildSkillProgress skills={skills} messages={activityMessages} />
     </main>
   );
 }

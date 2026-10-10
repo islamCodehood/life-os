@@ -5,6 +5,8 @@ import type {
   SchedulingFamily,
 } from '@/src/application/activity/activity-repository';
 import { ActivityService } from '@/src/application/activity/activity-service';
+import type { XpRepository } from '@/src/application/growth/xp-repository';
+import type { XpEntry } from '@/src/domain/growth/skill-xp';
 import type {
   ActivityAssignment,
   ActivityDefinition,
@@ -61,8 +63,28 @@ class InMemoryActivityRepository implements ActivityRepository {
     payload: Record<string, unknown>;
   }> = [];
 
+  async lockTemplateAssignment(
+    _familyId: FamilyId,
+    _childId: ChildId,
+    _templateKey: ActivityTemplateKey,
+  ) {
+    // In-memory tests execute serially; PostgreSQL uses transaction-scoped advisory locks.
+  }
+
   async getTemplate(key: ActivityTemplateKey) {
-    return key === this.template.key ? this.template : null;
+    if (key === this.template.key) return this.template;
+    if (key === 'GROWTH_READING' || key === 'GROWTH_CHESS_PRACTICE') {
+      return {
+        ...this.template,
+        key,
+        category: 'GROWTH' as const,
+        title: key === 'GROWTH_READING' ? 'Reading practice' : 'Chess practice',
+        defaultLocalTargetTime: key === 'GROWTH_READING' ? '17:00' : '18:00',
+        defaultProgressMode: 'MASTERY',
+        defaultXpMode: 'ALLOWED',
+      };
+    }
+    return null;
   }
 
   async findActiveAssignmentByTemplate(
@@ -726,6 +748,137 @@ describe('ActivityService Make Bed pilot', () => {
     expect(today.sections[0]?.items[0]).toMatchObject({
       templateKey: 'SELF_MAKE_BED',
       status: 'pending',
+    });
+  });
+});
+
+class InMemoryXpRepository implements XpRepository {
+  entries: XpEntry[] = [];
+  async append(entry: XpEntry) {
+    if (this.entries.some((e) => e.sourceEventId === entry.sourceEventId))
+      throw new Error('Duplicate event');
+    if (entry.correctionOf && this.entries.some((e) => e.correctionOf === entry.correctionOf))
+      throw new Error('Already corrected');
+    this.entries.push(entry);
+  }
+  async getEntry(familyId: FamilyId, id: string) {
+    return this.entries.find((e) => e.familyId === familyId && e.id === id) ?? null;
+  }
+  async hasCorrection(familyId: FamilyId, grantId: string) {
+    return this.entries.some((e) => e.familyId === familyId && e.correctionOf === grantId);
+  }
+  async listChildEntries(familyId: FamilyId, childId: ChildId) {
+    return this.entries.filter((e) => e.familyId === familyId && e.childId === childId);
+  }
+}
+
+describe('E6 Growth practice and canonical XP ledger', () => {
+  it('awards Reading XP once per opportunity; replay does not farm XP; Make Bed earns zero', async () => {
+    const f = fixture();
+    const xp = new InMemoryXpRepository();
+    const service = new ActivityService(f.activities, f.identity, undefined, xp);
+    const at = new Date('2026-10-05T14:30:00Z');
+    const assigned = await service.assignGrowthPractice(
+      f.guardian,
+      f.childId,
+      'GROWTH_READING',
+      at,
+    );
+    expect(assigned.assignment).toMatchObject({
+      xpMode: 'ALLOWED',
+      xpAmount: 10,
+      progressMode: 'MASTERY',
+    });
+    const first = await service.completeActivity({
+      actor: f.child,
+      instanceId: assigned.instance.id,
+      occurredAt: new Date('2026-10-05T16:45:00Z'),
+      expectedVersion: 1,
+    });
+    expect(first.alreadyCompleted).toBe(false);
+    expect(xp.entries).toHaveLength(1);
+    expect(xp.entries[0]).toMatchObject({ skillKey: 'READING', amount: 10, entryType: 'GRANT' });
+    const replay = await service.completeActivity({
+      actor: f.child,
+      instanceId: assigned.instance.id,
+      occurredAt: new Date('2026-10-05T16:46:00Z'),
+      expectedVersion: 1,
+    });
+    expect(replay.alreadyCompleted).toBe(true);
+    expect(xp.entries).toHaveLength(1);
+    expect(await service.getChildSkillProgress(f.child, f.childId)).toEqual(
+      expect.arrayContaining([expect.objectContaining({ skillKey: 'READING', xp: 10 })]),
+    );
+
+    const bed = await service.assignMakeBed(
+      f.guardian,
+      f.childId,
+      new Date('2026-10-05T02:00:00Z'),
+    );
+    await service.completeActivity({
+      actor: f.child,
+      instanceId: bed.instance.id,
+      occurredAt: new Date('2026-10-05T07:00:00Z'),
+      expectedVersion: 1,
+    });
+    expect(xp.entries).toHaveLength(1);
+  });
+
+  it('grants distinct Chess XP, enforces family-scoped corrections, audit, one correction only', async () => {
+    const f = fixture();
+    const xp = new InMemoryXpRepository();
+    const service = new ActivityService(f.activities, f.identity, undefined, xp);
+    const assigned = await service.assignGrowthPractice(
+      f.guardian,
+      f.childId,
+      'GROWTH_CHESS_PRACTICE',
+      new Date('2026-10-05T15:00:00Z'),
+    );
+    await service.completeActivity({
+      actor: f.child,
+      instanceId: assigned.instance.id,
+      occurredAt: new Date('2026-10-05T18:00:00Z'),
+      expectedVersion: 1,
+    });
+    const grant = xp.entries[0];
+    if (!grant) throw new Error('Missing XP grant');
+    await expect(
+      service.correctXpGrant({
+        actor: f.child,
+        xpEntryId: grant.id,
+        reason: 'Accidental award',
+        occurredAt: new Date(),
+      }),
+    ).rejects.toMatchObject({ code: 'FORBIDDEN' });
+    const corrected = await service.correctXpGrant({
+      actor: f.guardian,
+      xpEntryId: grant.id,
+      reason: 'The practice was recorded in error',
+      occurredAt: new Date('2026-10-06T09:00:00Z'),
+    });
+    expect(corrected.reversedAmount).toBe(10);
+    expect(xp.entries).toHaveLength(2);
+    expect(xp.entries[1]).toMatchObject({
+      skillKey: 'CHESS',
+      amount: -10,
+      entryType: 'CORRECTION',
+      correctionOf: grant.id,
+    });
+    await expect(
+      service.correctXpGrant({
+        actor: f.guardian,
+        xpEntryId: grant.id,
+        reason: 'Try correction again',
+        occurredAt: new Date(),
+      }),
+    ).rejects.toMatchObject({ code: 'RESOURCE_STATE_CHANGED' });
+    expect(f.activities.events.map((e) => e.type)).toContain('XpGrantCorrected');
+    expect(
+      (await service.getChildSkillProgress(f.child, f.childId)).find((e) => e.skillKey === 'CHESS')
+        ?.xp,
+    ).toBe(0);
+    await expect(service.getChildSkillProgress(f.sibling, f.childId)).rejects.toMatchObject({
+      code: 'FORBIDDEN',
     });
   });
 });

@@ -46,7 +46,8 @@ function category(value: string): ActivityCategory {
 
 function templateKey(value: string | null): ActivityTemplateKey | null {
   if (value === null) return null;
-  if (value === 'SELF_MAKE_BED') return value;
+  if (value === 'SELF_MAKE_BED' || value === 'GROWTH_READING' || value === 'GROWTH_CHESS_PRACTICE')
+    return value;
   throw new Error(`Unsupported activity template: ${value}`);
 }
 
@@ -90,7 +91,11 @@ function templateRow(row: typeof schema.activityTemplates.$inferSelect): Activit
     throw new Error(`Unsupported activity schedule: ${row.defaultScheduleRrule}`);
   }
   return {
-    key: templateKey(row.key) ?? 'SELF_MAKE_BED',
+    key:
+      templateKey(row.key) ??
+      (() => {
+        throw new Error('Unknown activity template.');
+      })(),
     title: row.title,
     description: row.description,
     why: row.why,
@@ -197,6 +202,18 @@ function reminderRow(row: typeof schema.reminderRecords.$inferSelect): ReminderR
 
 export class PostgresActivityRepository implements ActivityRepository {
   constructor(private readonly db: Db) {}
+
+  async lockTemplateAssignment(
+    familyId: FamilyId,
+    childId: ChildId,
+    template: ActivityTemplateKey,
+  ) {
+    // Two distinct commandIds must not create parallel daily assignments for one skill.
+    // Command endpoint owns the SQL transaction; advisory lock is released on commit/rollback.
+    await this.db.execute(
+      sql`SELECT pg_advisory_xact_lock(hashtextextended(${`${familyId}:${childId}:${template}`}, 0))`,
+    );
+  }
 
   async getTemplate(key: ActivityTemplateKey) {
     const [row] = await this.db

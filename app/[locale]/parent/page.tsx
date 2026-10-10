@@ -7,6 +7,7 @@ import { isLocale } from '@/src/i18n/locales';
 import { currentServerRequest } from '@/src/infrastructure/auth/server-request';
 import { createActivityRuntime } from '@/src/infrastructure/composition/activity-runtime';
 import { ParentMakeBedPanel } from '@/src/ui/activity/ParentMakeBedPanel';
+import { ParentGrowthPanel } from '@/src/ui/growth/ParentGrowthPanel';
 import { ParentGraduationPanel } from '@/src/ui/graduation/ParentGraduationPanel';
 import { ParentIdentitySetup } from '@/src/ui/identity/ParentIdentitySetup';
 
@@ -86,6 +87,40 @@ export default async function ParentShellPage({ params }: { params: Promise<{ lo
     }),
   );
 
+  const growthChildren = await Promise.all(
+    childProfiles.map(async (child) => {
+      const [reading, chess, skills, xpEntries] = await Promise.all([
+        runtime.activityRepository.findActiveAssignmentByTemplate(
+          actor.familyId,
+          child.id,
+          'GROWTH_READING',
+        ),
+        runtime.activityRepository.findActiveAssignmentByTemplate(
+          actor.familyId,
+          child.id,
+          'GROWTH_CHESS_PRACTICE',
+        ),
+        runtime.activities.getChildSkillProgress(actor, child.id),
+        runtime.activities.getParentXpHistory(actor, child.id),
+      ]);
+      return {
+        id: child.id,
+        displayName: child.displayName,
+        readingAssigned: reading !== null,
+        chessAssigned: chess !== null,
+        skills,
+        xpHistory: xpEntries.map((entry) => ({
+          id: entry.id,
+          skillKey: entry.skillKey,
+          entryType: entry.entryType,
+          amount: entry.amount,
+          correctionOf: entry.correctionOf,
+          occurredAt: entry.occurredAt.toISOString(),
+        })),
+      };
+    }),
+  );
+
   return (
     <main className="lo-app-foundation">
       <section className="lo-app-foundation__hero">
@@ -120,6 +155,7 @@ export default async function ParentShellPage({ params }: { params: Promise<{ lo
         locale={locale}
       />
       <ParentGraduationPanel childProfiles={pilotChildren} messages={activityMessages} />
+      <ParentGrowthPanel childProfiles={growthChildren} messages={activityMessages} />
     </main>
   );
 }

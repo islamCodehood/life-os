@@ -6,7 +6,7 @@ Life OS is an offline-capable family PWA designed to help children progressively
 
 ## Current status
 
-**Epic 0 — Engineering Foundation**, **Epic 1 — Family Identity + Child-Scoped Sessions**, **E2 — Make Bed pilot slice**, and **E3 — Offline Completion + Replay** are complete. **E4 — Reminders, Independence, Coverage, Recovery** is merged. **E5 — Graduation and Regression Monitoring** is in draft PR #6 with a guardian-controlled graduation review, child self-managed view, and parent monitoring. Automated readiness thresholds remain undefined, so no automatic graduation verdict is made. See `docs/implementation/E5_STATUS.md`.
+**Epic 0 — Engineering Foundation**, **Epic 1 — Family Identity + Child-Scoped Sessions**, **E2 — Make Bed pilot slice**, and **E3 — Offline Completion + Replay** are complete. **E4 — Reminders, Independence, Coverage, Recovery** is merged. **E5 — Graduation and Regression Monitoring** was merged from PR #6 with a guardian-controlled graduation review, child self-managed view, and parent monitoring. Automated readiness thresholds remain undefined, so no automatic graduation verdict is made. See `docs/implementation/E5_STATUS.md`. **E6 — Growth & Skill XP** is under review in PR #7; see `docs/implementation/E6_STATUS.md`.
 
 ## Start here
 
