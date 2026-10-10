@@ -24,6 +24,10 @@ export type UiAudit = {
   before: { title: string; description: string } | null;
   after: { title: string; description: string };
 };
+function toLocalInput(iso:string){
+  const date=new Date(iso);
+  return new Date(date.getTime()-date.getTimezoneOffset()*60000).toISOString().slice(0,16);
+}
 const blank = {
   subjectChildId: '' as string,
   privacy: 'CHILD_SAFE' as MomentPrivacy,
@@ -59,7 +63,7 @@ export function ParentMomentsPanel({
       title: item.title,
       description: item.description,
       tags: [...item.tags],
-      momentOccurredAt: item.occurredAt.slice(0, 16),
+      momentOccurredAt: toLocalInput(item.occurredAt),
     });
   }
   async function send(type: string, payload: Record<string, unknown>, current?: UiMoment) {
