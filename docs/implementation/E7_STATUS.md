@@ -1,6 +1,6 @@
 # E7 — Goals & Shared Goals
 
-Branch: `feat/e7-goals-shared-goals`; PR will be opened against merged E6.
+Branch: `feat/e7-goals-shared-goals`; PR #8 against merged E6.
 
 ## User-visible scope
 - Personal goals defined by what/why/next step/target and optional target date.
@@ -14,8 +14,9 @@ Branch: `feat/e7-goals-shared-goals`; PR will be opened against merged E6.
 ## Architecture
 - Commands reuse authenticated `/api/v1/commands` and its transactionally idempotent command ID.
 - All meaningful updates require an expected Goal version; rows are locked FOR UPDATE; stale writes report 409 rather than last-write-wins.
-- Goal progression is represented by `goals.progress`, verified against canonical append-only `goal_progress_entries`.
+- Goal progression advances `goals.progress` atomically with append-only `goal_progress_entries`; the history is retained for audit/rebuild.
 - Immutable histories: `goal_progress_entries`, `goal_revisions`, `goal_reflections` with database UPDATE/DELETE guards.
+- Read APIs: `/api/v1/child/goals`, `/api/v1/children/:childId/goals` (guardian only), `/api/v1/family/shared-goals` (family participants only). No contributor ranking fields.
 - PostgreSQL canonical; no XP, money, sibling ranking, automatic age-based autonomy, or expiry punishment.
 
 ## Migration
