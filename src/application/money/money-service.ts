@@ -31,7 +31,7 @@ export class MoneyDomainError extends Error {
     this.name = 'MoneyDomainError';
   }
 }
-function guardian(actor: ActorContext) {
+function guardian(actor: ActorContext): asserts actor is Extract<ActorContext, { kind: 'GUARDIAN' }> {
   if (actor.kind !== 'GUARDIAN')
     throw new MoneyDomainError('FORBIDDEN', 'Guardian must authorize money changes.');
   return actor;
