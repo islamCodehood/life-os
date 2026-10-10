@@ -23,10 +23,12 @@ export function displayMoney(minor: string, currency: string) {
   const digits = currencyDecimals(currency);
   const value = BigInt(minor);
   const pow = 10n ** BigInt(digits);
-  const whole = value / pow;
-  const part = (value % pow).toString().padStart(digits, '0');
+  const negative = value < 0n;
+  const absolute = negative ? -value : value;
+  const whole = absolute / pow;
+  const part = (absolute % pow).toString().padStart(digits, '0');
   const decimal = digits === 0 ? whole.toString() : whole.toString() + '.' + part;
-  return `${decimal} ${currency}`;
+  return `${negative ? '-' : ''}${decimal} ${currency}`;
 }
 export function suggestedSplit(unallocated: string) {
   const amount = BigInt(unallocated);
