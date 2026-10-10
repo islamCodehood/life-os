@@ -175,7 +175,7 @@ export class GoalService {
     input: {
       id: string;
       to: 'ACTIVE' | 'PAUSED' | 'ACHIEVED' | 'CLOSED';
-      expectedVersion?: number;
+      expectedVersion?: number | undefined;
       occurredAt: Date;
       now?: Date;
     },
@@ -209,7 +209,7 @@ export class GoalService {
       id: string;
       amount: number;
       step: string;
-      expectedVersion?: number;
+      expectedVersion?: number | undefined;
       occurredAt: Date;
       now?: Date;
     },
@@ -257,7 +257,7 @@ export class GoalService {
       targetDate: string | null;
       reason: string;
       nextStep?: string;
-      expectedVersion?: number;
+      expectedVersion?: number | undefined;
       occurredAt: Date;
       now?: Date;
     },
