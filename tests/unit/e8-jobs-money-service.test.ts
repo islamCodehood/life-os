@@ -229,12 +229,12 @@ describe('E8 job-to-money end-to-end domain services', () => {
         now,
       }),
     ).rejects.toMatchObject({ code: 'RESOURCE_STATE_CHANGED' });
-    await expect(
-      f.jobs.action(child, action(offered, 'APPROVE')),
-    ).rejects.toMatchObject({ code: 'FORBIDDEN' });
-    await expect(
-      f.jobs.action(sibling, action(offered, 'ACCEPT')),
-    ).rejects.toMatchObject({ code: 'RESOURCE_NOT_FOUND' });
+    await expect(f.jobs.action(child, action(offered, 'APPROVE'))).rejects.toMatchObject({
+      code: 'FORBIDDEN',
+    });
+    await expect(f.jobs.action(sibling, action(offered, 'ACCEPT'))).rejects.toMatchObject({
+      code: 'RESOURCE_NOT_FOUND',
+    });
     const accepted = await f.jobs.action(child, action(offered, 'ACCEPT'));
     const started = await f.jobs.action(child, action(accepted, 'START'));
     const submitted = await f.jobs.action(child, action(started, 'SUBMIT'));
@@ -242,9 +242,9 @@ describe('E8 job-to-money end-to-end domain services', () => {
     const approved = await f.jobs.action(guardian, action(submitted, 'APPROVE'));
     expect(approved.status).toBe('AWAITING_CREDIT');
     expect((await f.money.view(child, childId)).balances.unallocated).toBe('0');
-    await expect(
-      f.jobs.action(child, action(approved, 'CREDIT')),
-    ).rejects.toMatchObject({ code: 'FORBIDDEN' });
+    await expect(f.jobs.action(child, action(approved, 'CREDIT'))).rejects.toMatchObject({
+      code: 'FORBIDDEN',
+    });
     const credited = await f.jobs.action(guardian, action(approved, 'CREDIT'));
     expect(credited.status).toBe('CREDITED');
     expect((await f.money.view(child, childId)).balances.unallocated).toBe('10000');

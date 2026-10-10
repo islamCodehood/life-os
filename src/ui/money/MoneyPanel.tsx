@@ -283,8 +283,7 @@ export function MoneyPanel({
         {guardian && <h4>{data.displayName}</h4>}
         <ul>
           <li>
-            <strong>{messages.unallocated}:</strong>{' '}
-            {displayMoney(balances.unallocated, currency)}
+            <strong>{messages.unallocated}:</strong> {displayMoney(balances.unallocated, currency)}
           </li>
           <li>
             <strong>{messages.give}:</strong> {displayMoney(balances.give, currency)}

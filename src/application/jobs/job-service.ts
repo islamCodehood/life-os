@@ -68,9 +68,14 @@ export class JobService {
     };
     await this.repository.create(job);
     await this.repository.recordRevision({
-      id:newId<'JobRevisionId'>(),familyId:job.familyId,jobId:job.id,
-      termsVersion:1,criteria:job.criteria,paymentMinor:job.paymentMinor,
-      reason:'Initial offer',now:input.now,
+      id: newId<'JobRevisionId'>(),
+      familyId: job.familyId,
+      jobId: job.id,
+      termsVersion: 1,
+      criteria: job.criteria,
+      paymentMinor: job.paymentMinor,
+      reason: 'Initial offer',
+      now: input.now,
     });
     return job;
   }
