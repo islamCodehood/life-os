@@ -6,6 +6,7 @@ import { currentServerRequest } from '@/src/infrastructure/auth/server-request';
 import { createActivityRuntime } from '@/src/infrastructure/composition/activity-runtime';
 import { childOfflineActorScope } from '@/src/offline/actor-scope';
 import { ChildTodayResponsibilities } from '@/src/ui/activity/ChildTodayResponsibilities';
+import { ChildGraduatedResponsibilities } from '@/src/ui/graduation/ChildGraduatedResponsibilities';
 
 export const dynamic = 'force-dynamic';
 
@@ -26,6 +27,7 @@ export default async function ChildShellPage({ params }: { params: Promise<{ loc
   if (!child) redirect(`/${locale}`);
 
   const today = await runtime.activities.getChildToday(actor);
+  const graduated = await runtime.graduations.childGraduated(actor);
   const actorScope = childOfflineActorScope({
     familyId: actor.familyId,
     childId: actor.childId,
@@ -48,6 +50,7 @@ export default async function ChildShellPage({ params }: { params: Promise<{ loc
         referenceTime={today.generatedAt}
         actorScope={actorScope}
       />
+      <ChildGraduatedResponsibilities items={graduated} messages={activityMessages} />
     </main>
   );
 }

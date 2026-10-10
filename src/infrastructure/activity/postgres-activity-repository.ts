@@ -131,7 +131,8 @@ function assignmentRow(row: typeof schema.activityAssignments.$inferSelect): Act
     familyId: row.familyId as FamilyId,
     childId: row.childId as ChildId,
     activityDefinitionId: row.activityDefinitionId as ActivityDefinitionId,
-    status: row.status === 'ARCHIVED' ? 'ARCHIVED' : 'ACTIVE',
+    status:
+      row.status === 'ARCHIVED' ? 'ARCHIVED' : row.status === 'GRADUATED' ? 'GRADUATED' : 'ACTIVE',
     scheduleRrule: 'FREQ=DAILY',
     scheduleTimezone: row.scheduleTimezone,
     localTargetTime: row.localTargetTime,
@@ -226,6 +227,32 @@ export class PostgresActivityRepository implements ActivityRepository {
           eq(schema.activityAssignments.familyId, familyId),
           eq(schema.activityAssignments.childId, childId),
           eq(schema.activityAssignments.status, 'ACTIVE'),
+          isNull(schema.activityAssignments.archivedAt),
+          eq(schema.activityDefinitions.templateKey, key),
+          isNull(schema.activityDefinitions.archivedAt),
+        ),
+      )
+      .limit(1);
+
+    return row ? assignmentRow(row.assignment) : null;
+  }
+
+  async findAssignedByTemplate(familyId: FamilyId, childId: ChildId, key: ActivityTemplateKey) {
+    const [row] = await this.db
+      .select({ assignment: schema.activityAssignments })
+      .from(schema.activityAssignments)
+      .innerJoin(
+        schema.activityDefinitions,
+        and(
+          eq(schema.activityDefinitions.id, schema.activityAssignments.activityDefinitionId),
+          eq(schema.activityDefinitions.familyId, schema.activityAssignments.familyId),
+        ),
+      )
+      .where(
+        and(
+          eq(schema.activityAssignments.familyId, familyId),
+          eq(schema.activityAssignments.childId, childId),
+          sql`${schema.activityAssignments.status} IN ('ACTIVE', 'GRADUATED')`,
           isNull(schema.activityAssignments.archivedAt),
           eq(schema.activityDefinitions.templateKey, key),
           isNull(schema.activityDefinitions.archivedAt),

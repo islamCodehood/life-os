@@ -84,6 +84,25 @@ class InMemoryActivityRepository implements ActivityRepository {
     return null;
   }
 
+  async findAssignedByTemplate(
+    familyId: FamilyId,
+    childId: ChildId,
+    templateKey: ActivityTemplateKey,
+  ) {
+    for (const assignment of this.assignments.values()) {
+      const definition = this.definitions.get(assignment.activityDefinitionId);
+      if (
+        assignment.familyId === familyId &&
+        assignment.childId === childId &&
+        (assignment.status === 'ACTIVE' || assignment.status === 'GRADUATED') &&
+        definition?.templateKey === templateKey
+      ) {
+        return assignment;
+      }
+    }
+    return null;
+  }
+
   async createDefinition(definition: ActivityDefinition) {
     this.definitions.set(definition.id, definition);
     return definition;

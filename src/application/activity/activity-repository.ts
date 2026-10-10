@@ -33,6 +33,12 @@ export interface ActivityRepository {
     templateKey: ActivityTemplateKey,
   ): Promise<ActivityAssignment | null>;
 
+  findAssignedByTemplate(
+    familyId: FamilyId,
+    childId: ChildId,
+    templateKey: ActivityTemplateKey,
+  ): Promise<ActivityAssignment | null>;
+
   createDefinition(definition: ActivityDefinition): Promise<ActivityDefinition>;
   createAssignment(assignment: ActivityAssignment): Promise<ActivityAssignment>;
 

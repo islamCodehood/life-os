@@ -124,12 +124,18 @@ export class ActivityService {
       throw new ActivityDomainError('RESOURCE_NOT_FOUND', 'Child profile was not found.');
     }
 
-    const existing = await this.repository.findActiveAssignmentByTemplate(
+    const existing = await this.repository.findAssignedByTemplate(
       guardian.familyId,
       childId,
       'SELF_MAKE_BED',
     );
     if (existing) {
+      if (existing.status === 'GRADUATED') {
+        throw new ActivityDomainError(
+          'RESOURCE_STATE_CHANGED',
+          'This responsibility is graduated; guardian reactivation is required before daily tracking resumes.',
+        );
+      }
       const instance = await this.materializeAssignmentForDate(existing, existing.activeFrom);
       return { assignment: existing, instance, created: false };
     }
@@ -258,6 +264,7 @@ export class ActivityService {
 
     const items: ActivityCardDto[] = [];
     for (const { instance, assignment, definition } of contexts) {
+      if (assignment.status !== 'ACTIVE' || date < assignment.activeFrom) continue;
       if (instance.status === 'EXCUSED' || instance.status === 'NOT_APPLICABLE') continue;
 
       let recoveryRecognition = false;
@@ -325,6 +332,13 @@ export class ActivityService {
     );
     if (!allowed) {
       throw new ActivityDomainError('RESOURCE_NOT_FOUND', 'Activity opportunity was not found.');
+    }
+
+    if (context.assignment.status !== 'ACTIVE') {
+      throw new ActivityDomainError(
+        'RESOURCE_STATE_CHANGED',
+        'This responsibility is no longer in daily tracking.',
+      );
     }
 
     if (context.instance.status === 'COMPLETED') {

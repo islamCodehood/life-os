@@ -56,7 +56,7 @@ export interface ActivityAssignment {
   familyId: FamilyId;
   childId: ChildId;
   activityDefinitionId: ActivityDefinitionId;
-  status: 'ACTIVE' | 'ARCHIVED';
+  status: 'ACTIVE' | 'GRADUATED' | 'ARCHIVED';
   scheduleRrule: 'FREQ=DAILY';
   scheduleTimezone: string;
   localTargetTime: string;
