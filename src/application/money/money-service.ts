@@ -10,7 +10,6 @@ import {
   outboundPostings,
   positiveMinor,
   reversePostings,
-  type AccountBucket,
   type MoneyPosting,
 } from '@/src/domain/money/ledger';
 import { MoneyRuleError } from '@/src/domain/money/ledger';
