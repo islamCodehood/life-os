@@ -2,6 +2,9 @@ import { notFound, redirect } from 'next/navigation';
 import { getActivityMessages } from '@/src/i18n/activity-messages';
 import { getGoalMessages } from '@/src/i18n/goal-messages';
 import { getMoneyMessages } from '@/src/i18n/money-messages';
+import {getStoryMessages} from '@/src/i18n/story-messages';
+import {StoryTimeline} from '@/src/ui/moments/StoryTimeline';
+import {currentDateInTimezone} from '@/src/application/identity/current-date';
 import { MoneyPanel } from '@/src/ui/money/MoneyPanel';
 import { GoalsPanel } from '@/src/ui/goals/GoalsPanel';
 import { getIdentityMessages } from '@/src/i18n/identity-messages';
@@ -44,6 +47,11 @@ export default async function ChildShellPage({ params }: { params: Promise<{ loc
   );
   const moneyJobs = await runtime.jobs.listVisible(actor);
   const moneyWallet = await runtime.money.view(actor, actor.childId);
+  const family=await runtime.repository.getFamily(actor.familyId);
+  const storyPref=family?(await runtime.repository.listChildSummaries(
+    actor.familyId,currentDateInTimezone(family.timezone),
+  )).find(profile=>profile.id===actor.childId)?.experience.visualization:undefined;
+  const story=await runtime.moments.story(actor,actor.childId,new Date(),storyPref);
   const actorScope = childOfflineActorScope({
     familyId: actor.familyId,
     childId: actor.childId,
@@ -67,6 +75,7 @@ export default async function ChildShellPage({ params }: { params: Promise<{ loc
         actorScope={actorScope}
       />
       <ChildGraduatedResponsibilities items={graduated} messages={activityMessages} />
+      <StoryTimeline items={story.items} messages={getStoryMessages(locale)} locale={locale} />
       <ChildSkillProgress skills={skills} messages={activityMessages} />
       <MoneyPanel
         mode="CHILD"
