@@ -134,11 +134,14 @@ export default async function ParentShellPage({ params }: { params: Promise<{ lo
     ),
   );
 
-  const moneyChildren = await Promise.all(childProfiles.map(async child=>({
-    id:child.id,displayName:child.displayName,
-    jobs:await runtime.jobs.listVisible(actor,child.id),
-    wallet:await runtime.money.view(actor,child.id),
-  })));
+  const moneyChildren = await Promise.all(
+    childProfiles.map(async (child) => ({
+      id: child.id,
+      displayName: child.displayName,
+      jobs: await runtime.jobs.listVisible(actor, child.id),
+      wallet: await runtime.money.view(actor, child.id),
+    })),
+  );
 
   return (
     <main className="lo-app-foundation">

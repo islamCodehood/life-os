@@ -43,7 +43,7 @@ export default async function ChildShellPage({ params }: { params: Promise<{ loc
     ),
   );
   const moneyJobs = await runtime.jobs.listVisible(actor);
-  const moneyWallet = await runtime.money.view(actor,actor.childId);
+  const moneyWallet = await runtime.money.view(actor, actor.childId);
   const actorScope = childOfflineActorScope({
     familyId: actor.familyId,
     childId: actor.childId,
@@ -68,9 +68,18 @@ export default async function ChildShellPage({ params }: { params: Promise<{ loc
       />
       <ChildGraduatedResponsibilities items={graduated} messages={activityMessages} />
       <ChildSkillProgress skills={skills} messages={activityMessages} />
-      <MoneyPanel mode="CHILD" children={[{
-        id:actor.childId,displayName:child.displayName,jobs:moneyJobs,wallet:moneyWallet,
-      }]} messages={getMoneyMessages(locale)} />
+      <MoneyPanel
+        mode="CHILD"
+        children={[
+          {
+            id: actor.childId,
+            displayName: child.displayName,
+            jobs: moneyJobs,
+            wallet: moneyWallet,
+          },
+        ]}
+        messages={getMoneyMessages(locale)}
+      />
       <GoalsPanel
         mode="CHILD"
         childId={actor.childId}
