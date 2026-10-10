@@ -276,7 +276,7 @@ describe('E8 job-to-money end-to-end domain services', () => {
     expect(revised.status).toBe('OFFERED');
     expect(revised.termsVersion).toBe(2);
     expect(revised.acceptedTermsVersion).toBeNull();
-    expect(f.jobRepo.revisions).toHaveLength(1);
+    expect(f.jobRepo.revisions).toHaveLength(2);
     const reaccepted = await f.jobs.action(child, action(revised, 'ACCEPT'));
     expect(reaccepted.acceptedTermsVersion).toBe(2);
     const inProgress = await f.jobs.action(child, action(reaccepted, 'START'));
