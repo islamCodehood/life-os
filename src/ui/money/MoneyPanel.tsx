@@ -152,7 +152,7 @@ export function MoneyPanel({
         {guardian && <p>{child?.displayName}</p>}
         <p>{job.criteria}</p>
         <p>
-          {messages.pay}: {displayMoney(job.paymentMinor, job.currency, 'en')}
+          {messages.pay}: {displayMoney(job.paymentMinor, job.currency)}
         </p>
         <p>
           {messages.terms}: {job.termsVersion} · {messages[job.status]}
@@ -284,16 +284,16 @@ export function MoneyPanel({
         <ul>
           <li>
             <strong>{messages.unallocated}:</strong>{' '}
-            {displayMoney(balances.unallocated, currency, 'en')}
+            {displayMoney(balances.unallocated, currency)}
           </li>
           <li>
-            <strong>{messages.give}:</strong> {displayMoney(balances.give, currency, 'en')}
+            <strong>{messages.give}:</strong> {displayMoney(balances.give, currency)}
           </li>
           <li>
-            <strong>{messages.save}:</strong> {displayMoney(balances.save, currency, 'en')}
+            <strong>{messages.save}:</strong> {displayMoney(balances.save, currency)}
           </li>
           <li>
-            <strong>{messages.spend}:</strong> {displayMoney(balances.spend, currency, 'en')}
+            <strong>{messages.spend}:</strong> {displayMoney(balances.spend, currency)}
           </li>
         </ul>
         {guardian && (
@@ -407,8 +407,8 @@ export function MoneyPanel({
         )}
         {wallet.savingGoals.map((goal) => (
           <section key={goal.id}>
-            <strong>{goal.title}</strong> · {displayMoney(goal.allocatedMinor, currency, 'en')} /{' '}
-            {displayMoney(goal.targetMinor, currency, 'en')}
+            <strong>{goal.title}</strong> · {displayMoney(goal.allocatedMinor, currency)} /{' '}
+            {displayMoney(goal.targetMinor, currency)}
             {goal.status === 'ACTIVE' && guardian && (
               <form
                 onSubmit={(event) =>
