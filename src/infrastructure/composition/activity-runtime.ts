@@ -24,7 +24,9 @@ export async function createActivityRuntime() {
   );
 
   const goals = new GoalService(
-    new PostgresGoalRepository(getDatabase().db), identity.repository, repository,
+    new PostgresGoalRepository(getDatabase().db),
+    identity.repository,
+    repository,
   );
 
   return {
