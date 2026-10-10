@@ -1,4 +1,6 @@
 import { ActivityService } from '@/src/application/activity/activity-service';
+import { GoalService } from '@/src/application/goals/goal-service';
+import { PostgresGoalRepository } from '@/src/infrastructure/goals/postgres-goal-repository';
 import { PostgresXpRepository } from '@/src/infrastructure/growth/postgres-xp-repository';
 import { GraduationService } from '@/src/application/graduation/graduation-service';
 import { PostgresGraduationRepository } from '@/src/infrastructure/graduation/postgres-graduation-repository';
@@ -21,10 +23,15 @@ export async function createActivityRuntime() {
     identity.repository,
   );
 
+  const goals = new GoalService(
+    new PostgresGoalRepository(getDatabase().db), identity.repository, repository,
+  );
+
   return {
     ...identity,
     activityRepository: repository,
     activities,
     graduations,
+    goals,
   };
 }
