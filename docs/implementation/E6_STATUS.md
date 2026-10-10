@@ -10,6 +10,7 @@ Guardian assigns daily Reading or Chess practice. Child completes it using the s
 - Server-controlled pilot value: 10 XP per valid practice opportunity.
 - Milestone display: 50, 100, 250 XP per skill, **not** an overall child score. These are experimental starter defaults.
 - Source event UUID unique in `xp_ledger`. Domain completion row unique per activity instance; processed command envelope idempotent.
+- PostgreSQL transaction-scoped advisory lock serializes assignment of one template to one child, preventing concurrent guardian commands from creating duplicate daily opportunities.
 - Reactivated/missed/excused Make Bed, recovery, ordinary self/family responsibilities, faith and values do not receive skill XP.
 - Skill balance is rebuilt from `xp_ledger`; no editable balance columns or XP-to-money exchange.
 - Guardian can correct a *mistaken* XP grant using `CorrectXpGrant` with a reason. Compensation appends `CORRECTION` equal to the negative original amount, with a unique `correction_of` reference and audit event.
