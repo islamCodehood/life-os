@@ -63,6 +63,10 @@ class InMemoryActivityRepository implements ActivityRepository {
     payload: Record<string, unknown>;
   }> = [];
 
+  async lockTemplateAssignment(_familyId: FamilyId, _childId: ChildId, _templateKey: ActivityTemplateKey) {
+    // In-memory tests execute serially; PostgreSQL uses transaction-scoped advisory locks.
+  }
+
   async getTemplate(key: ActivityTemplateKey) {
     if (key === this.template.key) return this.template;
     if (key === 'GROWTH_READING' || key === 'GROWTH_CHESS_PRACTICE') {

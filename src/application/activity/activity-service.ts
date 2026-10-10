@@ -134,6 +134,7 @@ export class ActivityService {
       throw new ActivityDomainError('RESOURCE_NOT_FOUND', 'Child profile was not found.');
     }
 
+    await this.repository.lockTemplateAssignment(guardian.familyId, childId, 'SELF_MAKE_BED');
     const existing = await this.repository.findAssignedByTemplate(
       guardian.familyId,
       childId,
@@ -240,6 +241,7 @@ export class ActivityService {
       throw new ActivityDomainError('RESOURCE_NOT_FOUND', 'Child profile was not found.');
     }
 
+    await this.repository.lockTemplateAssignment(guardian.familyId, childId, templateKey);
     const existing = await this.repository.findAssignedByTemplate(
       guardian.familyId,
       childId,
