@@ -32,7 +32,7 @@ CREATE TABLE "life_os"."xp_ledger" (
     REFERENCES "life_os"."xp_ledger"("id","family_id"),
   CONSTRAINT "xp_ledger_amount_check" CHECK (
     ("entry_type" = 'GRANT' AND "amount" > 0 AND "correction_of" IS NULL AND "correction_reason" IS NULL) OR
-    ("entry_type" = 'CORRECTION' AND "amount" < 0 AND "correction_of" IS NOT NULL AND length(trim("correction_reason")) > 0)
+    ("entry_type" = 'CORRECTION' AND "amount" < 0 AND "correction_of" IS NOT NULL AND "correction_reason" IS NOT NULL AND length(trim("correction_reason")) > 0)
   ),
   CONSTRAINT "xp_ledger_skill_check" CHECK ("skill_key" IN ('READING', 'CHESS'))
 );
