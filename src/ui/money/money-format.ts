@@ -1,8 +1,10 @@
 // Display-only money formatting. Business calculations always use bigint minor units.
 export function currencyDecimals(currency: string) {
   try {
-    return new Intl.NumberFormat('en', { style: 'currency', currency }).resolvedOptions()
-      .maximumFractionDigits ?? 2;
+    return (
+      new Intl.NumberFormat('en', { style: 'currency', currency }).resolvedOptions()
+        .maximumFractionDigits ?? 2
+    );
   } catch {
     return 2;
   }
