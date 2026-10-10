@@ -3,6 +3,7 @@ import { ZodError } from 'zod';
 import { ActivityDomainError } from '@/src/application/activity/activity-service';
 import { GraduationDomainError } from '@/src/application/graduation/graduation-service';
 import { GoalDomainError } from '@/src/application/goals/goal-service';
+import { MomentDomainError } from '@/src/application/moments/moment-service';
 import { MoneyDomainError } from '@/src/application/money/money-service';
 import { JobDomainError } from '@/src/application/jobs/job-service';
 import { GuardianAuthenticationError } from '@/src/application/auth/guardian-auth-gateway';
@@ -16,6 +17,7 @@ export function errorResponse(error: unknown, requestId: string) {
     error instanceof ActivityDomainError ||
     error instanceof GraduationDomainError ||
     error instanceof GoalDomainError ||
+    error instanceof MomentDomainError ||
     error instanceof MoneyDomainError ||
     error instanceof JobDomainError ||
     error instanceof IdentityDomainError

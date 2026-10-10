@@ -1,4 +1,6 @@
 import { ActivityService } from '@/src/application/activity/activity-service';
+import { MomentService } from '@/src/application/moments/moment-service';
+import { PostgresMomentRepository } from '@/src/infrastructure/moments/postgres-moment-repository';
 import { MoneyService } from '@/src/application/money/money-service';
 import { JobService } from '@/src/application/jobs/job-service';
 import { PostgresMoneyRepository } from '@/src/infrastructure/money/postgres-money-repository';
@@ -42,12 +44,19 @@ export async function createActivityRuntime() {
     identity.repository,
     money,
   );
+  const moments = new MomentService(
+    new PostgresMomentRepository(getDatabase().db),
+    identity.repository,
+    repository,
+  );
+
   return {
     ...identity,
     activityRepository: repository,
     activities,
     graduations,
     goals,
+    moments,
     money,
     jobs,
   };

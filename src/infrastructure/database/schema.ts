@@ -5,4 +5,5 @@ export * from './schema/graduation';
 export * from './schema/growth';
 export * from './schema/goals';
 export * from './schema/jobs-money';
+export * from './schema/moments';
 export * from './schema/system';
