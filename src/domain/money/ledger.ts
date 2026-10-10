@@ -30,7 +30,7 @@ export function balanced(postings: readonly MoneyPosting[]) {
     postings.reduce((sum, p) => sum + p.amount, 0n) !== 0n
   )
     throw new MoneyRuleError('Money postings must balance exactly to zero.');
-  return postings;
+  return [...postings];
 }
 export function incomePostings(amount: bigint): MoneyPosting[] {
   return balanced([
@@ -48,14 +48,10 @@ export function allocatePostings(input: {
   const total = give + save + spend;
   if (total <= 0n || [give, save, spend].some((v) => v < 0n) || total !== available)
     throw new MoneyRuleError('Give, Save and Spend must equal all currently unallocated money.');
-  return balanced([
-    { bucket: 'UNALLOCATED', amount: -total },
-    ...[
-      { bucket: 'GIVE', amount: give },
-      { bucket: 'SAVE', amount: save },
-      { bucket: 'SPEND', amount: spend },
-    ].filter((p) => p.amount !== 0n),
-  ]);
+  const allocations:MoneyPosting[]=[
+      {bucket:'GIVE',amount:give},{bucket:'SAVE',amount:save},{bucket:'SPEND',amount:spend},
+  ];
+  return balanced([{bucket:'UNALLOCATED',amount:-total},...allocations.filter(p=>p.amount!==0n)]);
 }
 export function outboundPostings(
   bucket: 'GIVE' | 'SPEND',
