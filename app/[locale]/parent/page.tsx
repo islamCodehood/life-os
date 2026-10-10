@@ -3,6 +3,8 @@ import { notFound, redirect } from 'next/navigation';
 import { currentDateInTimezone } from '@/src/application/identity/current-date';
 import { getActivityMessages } from '@/src/i18n/activity-messages';
 import { getGoalMessages } from '@/src/i18n/goal-messages';
+import { getMoneyMessages } from '@/src/i18n/money-messages';
+import { MoneyPanel } from '@/src/ui/money/MoneyPanel';
 import { GoalsPanel } from '@/src/ui/goals/GoalsPanel';
 import { getIdentityMessages } from '@/src/i18n/identity-messages';
 import { isLocale } from '@/src/i18n/locales';
@@ -132,6 +134,12 @@ export default async function ParentShellPage({ params }: { params: Promise<{ lo
     ),
   );
 
+  const moneyChildren = await Promise.all(childProfiles.map(async child=>({
+    id:child.id,displayName:child.displayName,
+    jobs:await runtime.jobs.listVisible(actor,child.id),
+    wallet:await runtime.money.view(actor,child.id),
+  })));
+
   return (
     <main className="lo-app-foundation">
       <section className="lo-app-foundation__hero">
@@ -167,6 +175,7 @@ export default async function ParentShellPage({ params }: { params: Promise<{ lo
       />
       <ParentGraduationPanel childProfiles={pilotChildren} messages={activityMessages} />
       <ParentGrowthPanel childProfiles={growthChildren} messages={activityMessages} />
+      <MoneyPanel mode="GUARDIAN" children={moneyChildren} messages={getMoneyMessages(locale)} />
       <GoalsPanel
         mode="GUARDIAN"
         goals={goalItems}
