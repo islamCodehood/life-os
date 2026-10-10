@@ -203,10 +203,16 @@ function reminderRow(row: typeof schema.reminderRecords.$inferSelect): ReminderR
 export class PostgresActivityRepository implements ActivityRepository {
   constructor(private readonly db: Db) {}
 
-  async lockTemplateAssignment(familyId: FamilyId, childId: ChildId, template: ActivityTemplateKey) {
+  async lockTemplateAssignment(
+    familyId: FamilyId,
+    childId: ChildId,
+    template: ActivityTemplateKey,
+  ) {
     // Two distinct commandIds must not create parallel daily assignments for one skill.
     // Command endpoint owns the SQL transaction; advisory lock is released on commit/rollback.
-    await this.db.execute(sql`SELECT pg_advisory_xact_lock(hashtextextended(${`${familyId}:${childId}:${template}`}, 0))`);
+    await this.db.execute(
+      sql`SELECT pg_advisory_xact_lock(hashtextextended(${`${familyId}:${childId}:${template}`}, 0))`,
+    );
   }
 
   async getTemplate(key: ActivityTemplateKey) {

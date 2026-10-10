@@ -27,7 +27,11 @@ export interface SchedulingFamily {
 export interface ActivityRepository {
   getTemplate(key: ActivityTemplateKey): Promise<ActivityTemplate | null>;
   /** Serialize assignment of the same template to one child within the command transaction. */
-  lockTemplateAssignment(familyId: FamilyId, childId: ChildId, templateKey: ActivityTemplateKey): Promise<void>;
+  lockTemplateAssignment(
+    familyId: FamilyId,
+    childId: ChildId,
+    templateKey: ActivityTemplateKey,
+  ): Promise<void>;
 
   findActiveAssignmentByTemplate(
     familyId: FamilyId,
