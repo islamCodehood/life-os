@@ -33,9 +33,13 @@ export default async function ChildShellPage({ params }: { params: Promise<{ loc
   const graduated = await runtime.graduations.childGraduated(actor);
   const skills = await runtime.activities.getChildSkillProgress(actor, actor.childId);
   const goalItems = await runtime.goals.listVisible(actor);
-  const goalHistory = Object.fromEntries(await Promise.all(
-    goalItems.map(async item=>[item.id,await runtime.goals.history(actor,item.id)] as const),
-  ));
+  const goalHistory = Object.fromEntries(
+    await Promise.all(
+      goalItems.map(
+        async (item) => [item.id, await runtime.goals.history(actor, item.id)] as const,
+      ),
+    ),
+  );
   const actorScope = childOfflineActorScope({
     familyId: actor.familyId,
     childId: actor.childId,
@@ -60,8 +64,14 @@ export default async function ChildShellPage({ params }: { params: Promise<{ loc
       />
       <ChildGraduatedResponsibilities items={graduated} messages={activityMessages} />
       <ChildSkillProgress skills={skills} messages={activityMessages} />
-      <GoalsPanel mode="CHILD" childId={actor.childId} goals={goalItems}
-        history={goalHistory} childProfiles={[]} messages={getGoalMessages(locale)} />
+      <GoalsPanel
+        mode="CHILD"
+        childId={actor.childId}
+        goals={goalItems}
+        history={goalHistory}
+        childProfiles={[]}
+        messages={getGoalMessages(locale)}
+      />
     </main>
   );
 }

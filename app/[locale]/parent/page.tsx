@@ -124,9 +124,13 @@ export default async function ParentShellPage({ params }: { params: Promise<{ lo
   );
 
   const goalItems = await runtime.goals.listVisible(actor);
-  const goalHistory = Object.fromEntries(await Promise.all(
-    goalItems.map(async item => [item.id, await runtime.goals.history(actor,item.id)] as const),
-  ));
+  const goalHistory = Object.fromEntries(
+    await Promise.all(
+      goalItems.map(
+        async (item) => [item.id, await runtime.goals.history(actor, item.id)] as const,
+      ),
+    ),
+  );
 
   return (
     <main className="lo-app-foundation">
@@ -164,8 +168,13 @@ export default async function ParentShellPage({ params }: { params: Promise<{ lo
       <ParentGraduationPanel childProfiles={pilotChildren} messages={activityMessages} />
       <ParentGrowthPanel childProfiles={growthChildren} messages={activityMessages} />
       <GoalsPanel
-        mode="GUARDIAN" goals={goalItems} history={goalHistory}
-        childProfiles={childProfiles.map(child=>({id:child.id,displayName:child.displayName}))}
+        mode="GUARDIAN"
+        goals={goalItems}
+        history={goalHistory}
+        childProfiles={childProfiles.map((child) => ({
+          id: child.id,
+          displayName: child.displayName,
+        }))}
         messages={getGoalMessages(locale)}
       />
     </main>
