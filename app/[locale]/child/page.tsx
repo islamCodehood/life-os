@@ -70,7 +70,7 @@ export default async function ChildShellPage({ params }: { params: Promise<{ loc
       <ChildSkillProgress skills={skills} messages={activityMessages} />
       <MoneyPanel
         mode="CHILD"
-        children={[
+        profiles={[
           {
             id: actor.childId,
             displayName: child.displayName,
