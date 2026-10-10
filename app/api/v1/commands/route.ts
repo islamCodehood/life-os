@@ -6,6 +6,11 @@ import { e4CommandSchema } from '@/src/application/activity/e4-command-schema';
 import { e5CommandSchema } from '@/src/application/graduation/e5-command-schema';
 import { e6CommandSchema } from '@/src/application/growth/e6-command-schema';
 import { e7CommandSchema } from '@/src/application/goals/e7-command-schema';
+import { e8CommandSchema } from '@/src/application/money/e8-command-schema';
+import { MoneyService } from '@/src/application/money/money-service';
+import { JobService } from '@/src/application/jobs/job-service';
+import { PostgresMoneyRepository } from '@/src/infrastructure/money/postgres-money-repository';
+import { PostgresJobRepository } from '@/src/infrastructure/jobs/postgres-job-repository';
 import { GoalService } from '@/src/application/goals/goal-service';
 import { PostgresGoalRepository } from '@/src/infrastructure/goals/postgres-goal-repository';
 import { PostgresXpRepository } from '@/src/infrastructure/growth/postgres-xp-repository';
@@ -38,6 +43,7 @@ const commandSchema = z.union([
   e5CommandSchema,
   e6CommandSchema,
   e7CommandSchema,
+  e8CommandSchema,
 ]);
 
 type CommandResponse = {
@@ -94,6 +100,8 @@ export async function POST(request: Request) {
           identityRepository,
           activityRepository,
         );
+        const money = new MoneyService(new PostgresMoneyRepository(db), identityRepository);
+        const jobs = new JobService(new PostgresJobRepository(db), identityRepository, money);
         const graduations = new GraduationService(
           new PostgresGraduationRepository(db),
           activityRepository,
@@ -382,6 +390,90 @@ export async function POST(request: Request) {
               occurredAt: new Date(command.occurredAt),
               now: serverNow,
             });
+            break;
+          }
+          case 'CreateJob': {
+            const job = await jobs.create(actor, {...command.payload,now:serverNow});
+            data = {jobId:job.id,status:job.status,paymentMinor:job.paymentMinor};
+            resourceVersions = [{resourceType:'Job',resourceId:job.id,version:job.version}];
+            break;
+          }
+          case 'ReviseJobTerms': {
+            const job = await jobs.revise(actor,{
+              ...command.payload,now:serverNow,
+              expectedVersion:command.expectedVersions?.find(v=>
+                v.resourceType==='Job'&&v.resourceId===command.payload.jobId)?.version,
+            });
+            data = {jobId:job.id,status:job.status,termsVersion:job.termsVersion};
+            resourceVersions = [{resourceType:'Job',resourceId:job.id,version:job.version}];
+            break;
+          }
+          case 'AcceptJob':
+          case 'StartJob':
+          case 'SubmitJob':
+          case 'RequestJobRevision':
+          case 'RestartJob':
+          case 'ApproveJob':
+          case 'CreditApprovedJob':
+          case 'CancelJob': {
+            const actionMap = {
+              AcceptJob:'ACCEPT',StartJob:'START',SubmitJob:'SUBMIT',
+              RequestJobRevision:'REQUEST_REVISION',RestartJob:'RESTART',
+              ApproveJob:'APPROVE',CreditApprovedJob:'CREDIT',CancelJob:'CANCEL',
+            } as const;
+            const job = await jobs.action(actor,{
+              jobId:command.payload.jobId,action:actionMap[command.type],
+              expectedVersion:command.expectedVersions?.find(v=>
+                v.resourceType==='Job'&&v.resourceId===command.payload.jobId)?.version,
+              occurredAt:new Date(command.occurredAt),now:serverNow,
+            });
+            data = {jobId:job.id,status:job.status};
+            resourceVersions = [{resourceType:'Job',resourceId:job.id,version:job.version}];
+            break;
+          }
+          case 'RecordGiftIncome':
+          case 'RecordAllowanceIncome': {
+            const tx = await money.recordIncome(actor,{
+              ...command.payload,kind:command.type==='RecordGiftIncome'?'GIFT':'ALLOWANCE',
+              occurredAt:new Date(command.occurredAt),now:serverNow,
+            });
+            data = {transactionId:tx.id};
+            break;
+          }
+          case 'AllocateMoney': {
+            const tx = await money.allocate(actor,{...command.payload,
+              occurredAt:new Date(command.occurredAt),now:serverNow});
+            data = {transactionId:tx.id};
+            break;
+          }
+          case 'RecordSpend':
+          case 'RecordGiving': {
+            const tx = await money.outgoing(actor,{...command.payload,
+              kind:command.type==='RecordSpend'?'SPEND':'GIVING',
+              occurredAt:new Date(command.occurredAt),now:serverNow});
+            data = {transactionId:tx.id};
+            break;
+          }
+          case 'CorrectMoneyTransaction': {
+            const tx = await money.correct(actor,{
+              ...command.payload,occurredAt:new Date(command.occurredAt),now:serverNow});
+            data = {transactionId:tx.id,correctionOf:tx.correctionOf};
+            break;
+          }
+          case 'CreateSavingGoal': {
+            const goal = await money.createSavingGoal(actor,command.payload);
+            data = {savingGoalId:goal.id,status:goal.status};
+            resourceVersions = [{resourceType:'SavingGoal',resourceId:goal.id,version:goal.version}];
+            break;
+          }
+          case 'AllocateToSavingGoal': {
+            data = await money.allocateToSavingGoal(actor,command.payload);
+            break;
+          }
+          case 'CloseSavingGoal': {
+            data = await money.closeSavingGoal(actor,command.payload.savingGoalId,
+              command.expectedVersions?.find(v=>
+                v.resourceType==='SavingGoal'&&v.resourceId===command.payload.savingGoalId)?.version);
             break;
           }
           case 'RequestGraduationReview': {
