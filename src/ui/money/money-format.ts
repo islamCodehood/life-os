@@ -2,7 +2,7 @@
 export function currencyDecimals(currency: string) {
   try {
     return new Intl.NumberFormat('en', { style: 'currency', currency }).resolvedOptions()
-      .maximumFractionDigits;
+      .maximumFractionDigits ?? 2;
   } catch {
     return 2;
   }
@@ -10,14 +10,14 @@ export function currencyDecimals(currency: string) {
 export function toMinorUnits(raw: string, currency: string): string {
   const digits = currencyDecimals(currency);
   if (!/^\d+(\.\d+)?$/.test(raw.trim())) throw new Error('Invalid decimal money input.');
-  const [whole, minor = ''] = raw.trim().split('.');
+  const [whole = '0', minor = ''] = raw.trim().split('.');
   if (minor.length > digits) throw new Error('Too many decimal places.');
   return (
     BigInt(whole) * 10n ** BigInt(digits) +
     BigInt(minor.padEnd(digits, '0') || '0')
   ).toString();
 }
-export function displayMoney(minor: string, currency: string, locale: string) {
+export function displayMoney(minor: string, currency: string, _locale: string) {
   const digits = currencyDecimals(currency);
   const value = BigInt(minor);
   const pow = 10n ** BigInt(digits);
