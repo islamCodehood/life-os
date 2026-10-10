@@ -24,9 +24,9 @@ export type UiAudit = {
   before: { title: string; description: string } | null;
   after: { title: string; description: string };
 };
-function toLocalInput(iso:string){
-  const date=new Date(iso);
-  return new Date(date.getTime()-date.getTimezoneOffset()*60000).toISOString().slice(0,16);
+function toLocalInput(iso: string) {
+  const date = new Date(iso);
+  return new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
 }
 const blank = {
   subjectChildId: '' as string,
