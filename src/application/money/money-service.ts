@@ -36,7 +36,6 @@ function guardian(
 ): asserts actor is Extract<ActorContext, { kind: 'GUARDIAN' }> {
   if (actor.kind !== 'GUARDIAN')
     throw new MoneyDomainError('FORBIDDEN', 'Guardian must authorize money changes.');
-  return actor;
 }
 export class MoneyService {
   constructor(
