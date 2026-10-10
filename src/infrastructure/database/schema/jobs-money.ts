@@ -10,7 +10,6 @@ import {
 } from 'drizzle-orm/pg-core';
 import { lifeOsSchema } from '../schema-root';
 import { families, childProfiles } from './identity';
-const amount = () => pgBigint('amount_minor', { mode: 'bigint' });
 export const jobs = lifeOsSchema.table(
   'jobs',
   {
