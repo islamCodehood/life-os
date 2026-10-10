@@ -125,11 +125,18 @@ export class MoneyService {
   ) {
     guardian(actor);
     const w = await this.financialLock(actor, input.childId);
-    const approved = await this.repository.payableJob(w.familyId,input.jobId);
-    if(!approved||approved.childId!==w.childId||approved.status!=='AWAITING_CREDIT'||
-       approved.acceptedTermsVersion!==approved.termsVersion||
-       approved.paymentMinor!==input.amountMinor)
-      throw new MoneyDomainError('RESOURCE_STATE_CHANGED','Only approved, accepted job terms may be credited.');
+    const approved = await this.repository.payableJob(w.familyId, input.jobId);
+    if (
+      !approved ||
+      approved.childId !== w.childId ||
+      approved.status !== 'AWAITING_CREDIT' ||
+      approved.acceptedTermsVersion !== approved.termsVersion ||
+      approved.paymentMinor !== input.amountMinor
+    )
+      throw new MoneyDomainError(
+        'RESOURCE_STATE_CHANGED',
+        'Only approved, accepted job terms may be credited.',
+      );
     const amount = this.convert(() => positiveMinor(input.amountMinor));
     return this.commit({
       actor,

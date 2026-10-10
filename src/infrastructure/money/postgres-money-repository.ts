@@ -18,13 +18,23 @@ function rowToSaving(r: typeof s.savingGoals.$inferSelect): SavingGoal {
 }
 export class PostgresMoneyRepository implements MoneyRepository {
   constructor(private readonly db: Db) {}
-  async payableJob(familyId:string,jobId:string){
-   const [job]=await this.db.select().from(s.jobs)
-     .where(and(eq(s.jobs.familyId,familyId),eq(s.jobs.id,jobId))).limit(1);
-   return job?{childId:job.childId,paymentMinor:job.paymentMinor.toString(),status:job.status,
-    termsVersion:job.termsVersion,acceptedTermsVersion:job.acceptedTermsVersion}:null;
- }
- async lockWallet(familyId: string, childId: string) {
+  async payableJob(familyId: string, jobId: string) {
+    const [job] = await this.db
+      .select()
+      .from(s.jobs)
+      .where(and(eq(s.jobs.familyId, familyId), eq(s.jobs.id, jobId)))
+      .limit(1);
+    return job
+      ? {
+          childId: job.childId,
+          paymentMinor: job.paymentMinor.toString(),
+          status: job.status,
+          termsVersion: job.termsVersion,
+          acceptedTermsVersion: job.acceptedTermsVersion,
+        }
+      : null;
+  }
+  async lockWallet(familyId: string, childId: string) {
     await this.db.execute(
       sql`SELECT pg_advisory_xact_lock(hashtextextended(${'wallet:' + familyId + ':' + childId},0))`,
     );

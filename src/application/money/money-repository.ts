@@ -22,9 +22,16 @@ export interface SavingGoal {
 }
 export interface MoneyRepository {
   lockWallet(familyId: string, childId: string): Promise<void>;
-  payableJob(familyId:string,jobId:string):Promise<{
-    childId:string;paymentMinor:string;status:string;termsVersion:number;acceptedTermsVersion:number|null;
-  }|null>;
+  payableJob(
+    familyId: string,
+    jobId: string,
+  ): Promise<{
+    childId: string;
+    paymentMinor: string;
+    status: string;
+    termsVersion: number;
+    acceptedTermsVersion: number | null;
+  } | null>;
   ensureAccounts(
     familyId: string,
     childId: string,
