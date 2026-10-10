@@ -78,7 +78,7 @@ export function isValidIsoDate(value: string): boolean {
   return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === value;
 }
 export function displayGoalStatus(goal: Goal, localToday: string): GoalStatus {
-  return goal.status === 'ACTIVE' && goal.targetDate !== null && localToday > goal.targetDate
+  return goal.status === 'ACTIVE' && goal.targetDate !== null && localToday >= goal.targetDate
     ? 'TARGET_DATE_REACHED'
     : goal.status;
 }
