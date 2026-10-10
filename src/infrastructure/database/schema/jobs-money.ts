@@ -3,7 +3,7 @@ import {
   foreignKey,
   index,
   integer,
-  primaryKey,
+  
   text,
   timestamp,
   uniqueIndex,
