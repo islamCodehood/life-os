@@ -202,8 +202,15 @@ export function ChildTodayResponsibilities({
           item.status === 'pending' && !local && available && open && savingId === null;
 
         const localizedTitle =
-          item.templateKey === 'SELF_MAKE_BED' ? messages.makeBedTitle : item.title;
-        const localizedWhy = item.templateKey === 'SELF_MAKE_BED' ? messages.makeBedWhy : item.why;
+          item.templateKey === 'SELF_MAKE_BED' ? messages.makeBedTitle
+            : item.templateKey === 'GROWTH_READING' ? messages.readingPractice
+            : item.templateKey === 'GROWTH_CHESS_PRACTICE' ? messages.chessPractice
+            : item.title;
+        const localizedWhy =
+          item.templateKey === 'SELF_MAKE_BED' ? messages.makeBedWhy
+            : item.templateKey === 'GROWTH_READING' ? messages.readingPracticeWhy
+            : item.templateKey === 'GROWTH_CHESS_PRACTICE' ? messages.chessPracticeWhy
+            : item.why;
 
         const localMeta =
           local?.status === 'CONFLICT'
