@@ -298,8 +298,8 @@ describe('E7: personal & shared goal lifecycle', () => {
       occurredAt: now,
     });
     expect(closed.status).toBe('CLOSED');
-    expect((await f.service.listVisible(guardian, now)).some((v) => String(v.status) === 'FAILED')).toBe(
-      false,
-    );
+    expect(
+      (await f.service.listVisible(guardian, now)).some((v) => String(v.status) === 'FAILED'),
+    ).toBe(false);
   });
 });
