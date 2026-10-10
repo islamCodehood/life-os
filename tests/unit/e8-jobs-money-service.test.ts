@@ -207,7 +207,7 @@ function action(
   job: Job,
   kind: 'ACCEPT' | 'START' | 'SUBMIT' | 'APPROVE' | 'CREDIT' | 'REQUEST_REVISION' | 'RESTART',
 ) {
-  return { jobId: job.id, action: kind, expectedVersion: job.version, occurredAt: now, now, actor };
+  return { jobId: job.id, action: kind, expectedVersion: job.version, occurredAt: now, now };
 }
 
 describe('E8 job-to-money end-to-end domain services', () => {
