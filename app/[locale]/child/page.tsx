@@ -1,6 +1,8 @@
 import { notFound, redirect } from 'next/navigation';
 import { getActivityMessages } from '@/src/i18n/activity-messages';
 import { getGoalMessages } from '@/src/i18n/goal-messages';
+import { getMoneyMessages } from '@/src/i18n/money-messages';
+import { MoneyPanel } from '@/src/ui/money/MoneyPanel';
 import { GoalsPanel } from '@/src/ui/goals/GoalsPanel';
 import { getIdentityMessages } from '@/src/i18n/identity-messages';
 import { isLocale } from '@/src/i18n/locales';
@@ -40,6 +42,8 @@ export default async function ChildShellPage({ params }: { params: Promise<{ loc
       ),
     ),
   );
+  const moneyJobs = await runtime.jobs.listVisible(actor);
+  const moneyWallet = await runtime.money.view(actor, actor.childId);
   const actorScope = childOfflineActorScope({
     familyId: actor.familyId,
     childId: actor.childId,
@@ -64,6 +68,18 @@ export default async function ChildShellPage({ params }: { params: Promise<{ loc
       />
       <ChildGraduatedResponsibilities items={graduated} messages={activityMessages} />
       <ChildSkillProgress skills={skills} messages={activityMessages} />
+      <MoneyPanel
+        mode="CHILD"
+        profiles={[
+          {
+            id: actor.childId,
+            displayName: child.displayName,
+            jobs: moneyJobs,
+            wallet: moneyWallet,
+          },
+        ]}
+        messages={getMoneyMessages(locale)}
+      />
       <GoalsPanel
         mode="CHILD"
         childId={actor.childId}

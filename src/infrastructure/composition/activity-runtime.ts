@@ -1,4 +1,8 @@
 import { ActivityService } from '@/src/application/activity/activity-service';
+import { MoneyService } from '@/src/application/money/money-service';
+import { JobService } from '@/src/application/jobs/job-service';
+import { PostgresMoneyRepository } from '@/src/infrastructure/money/postgres-money-repository';
+import { PostgresJobRepository } from '@/src/infrastructure/jobs/postgres-job-repository';
 import { GoalService } from '@/src/application/goals/goal-service';
 import { PostgresGoalRepository } from '@/src/infrastructure/goals/postgres-goal-repository';
 import { PostgresXpRepository } from '@/src/infrastructure/growth/postgres-xp-repository';
@@ -29,11 +33,22 @@ export async function createActivityRuntime() {
     repository,
   );
 
+  const money = new MoneyService(
+    new PostgresMoneyRepository(getDatabase().db),
+    identity.repository,
+  );
+  const jobs = new JobService(
+    new PostgresJobRepository(getDatabase().db),
+    identity.repository,
+    money,
+  );
   return {
     ...identity,
     activityRepository: repository,
     activities,
     graduations,
     goals,
+    money,
+    jobs,
   };
 }
