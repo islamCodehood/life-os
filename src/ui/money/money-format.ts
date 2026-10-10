@@ -19,7 +19,7 @@ export function toMinorUnits(raw: string, currency: string): string {
     BigInt(minor.padEnd(digits, '0') || '0')
   ).toString();
 }
-export function displayMoney(minor: string, currency: string, _locale: string) {
+export function displayMoney(minor: string, currency: string) {
   const digits = currencyDecimals(currency);
   const value = BigInt(minor);
   const pow = 10n ** BigInt(digits);
