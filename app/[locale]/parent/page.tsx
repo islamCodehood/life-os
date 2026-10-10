@@ -178,7 +178,7 @@ export default async function ParentShellPage({ params }: { params: Promise<{ lo
       />
       <ParentGraduationPanel childProfiles={pilotChildren} messages={activityMessages} />
       <ParentGrowthPanel childProfiles={growthChildren} messages={activityMessages} />
-      <MoneyPanel mode="GUARDIAN" children={moneyChildren} messages={getMoneyMessages(locale)} />
+      <MoneyPanel mode="GUARDIAN" profiles={moneyChildren} messages={getMoneyMessages(locale)} />
       <GoalsPanel
         mode="GUARDIAN"
         goals={goalItems}
