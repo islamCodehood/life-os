@@ -68,11 +68,11 @@ function major(minor: string, currency: string) {
 
 export function MoneyPanel({
   mode,
-  children,
+  profiles,
   messages,
 }: {
   mode: 'CHILD' | 'GUARDIAN';
-  children: MoneyChild[];
+  profiles: MoneyChild[];
   messages: MoneyMessages;
 }) {
   const router = useRouter();
@@ -144,7 +144,7 @@ export function MoneyPanel({
     );
   }
   function renderJob(job: UiJob) {
-    const child = children.find((c) => c.id === job.childId);
+    const child = profiles.find((c) => c.id === job.childId);
     const canRevise = ['OFFERED', 'ACCEPTED', 'NEEDS_REVISION'].includes(job.status);
     return (
       <Card key={job.id} className="lo-app-foundation__card" variant="soft">
@@ -494,7 +494,7 @@ export function MoneyPanel({
             onSubmit={(event) =>
               submitForm(event, (form) => {
                 const childId = String(form.get('childId'));
-                const wallet = children.find((c) => c.id === childId)?.wallet;
+                const wallet = profiles.find((c) => c.id === childId)?.wallet;
                 if (!wallet) throw new Error('Child not found');
                 void send('CreateJob', {
                   childId,
@@ -508,7 +508,7 @@ export function MoneyPanel({
             <label>
               {messages.child}
               <select name="childId">
-                {children.map((c) => (
+                {profiles.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.displayName}
                   </option>
@@ -524,20 +524,20 @@ export function MoneyPanel({
               <input name="criteria" required minLength={5} maxLength={500} />
             </label>
             {amountField('payment', messages.pay)}
-            <Button type="submit" disabled={busy || children.length === 0}>
+            <Button type="submit" disabled={busy || profiles.length === 0}>
               {messages.jobOffer}
             </Button>
           </form>
         </Card>
       )}
       <h3>{guardian ? messages.familyJobs : messages.myJobs}</h3>
-      {children.flatMap((c) => c.jobs).length === 0 ? (
+      {profiles.flatMap((c) => c.jobs).length === 0 ? (
         <p>{messages.noJobs}</p>
       ) : (
-        children.flatMap((c) => c.jobs).map(renderJob)
+        profiles.flatMap((c) => c.jobs).map(renderJob)
       )}
       <h3>{guardian ? messages.familyWallet : messages.wallet}</h3>
-      {children.map(renderWallet)}
+      {profiles.map(renderWallet)}
     </section>
   );
 }
