@@ -1,4 +1,3 @@
-import {and,eq} from 'drizzle-orm';
 import {foreignKey,index,integer,jsonb,text,timestamp,uniqueIndex,uuid} from 'drizzle-orm/pg-core';
 import {lifeOsSchema} from '../schema-root';
 import {childProfiles,families} from './identity';
