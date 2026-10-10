@@ -4,8 +4,8 @@ import { currentDateInTimezone } from '@/src/application/identity/current-date';
 import { getActivityMessages } from '@/src/i18n/activity-messages';
 import { getGoalMessages } from '@/src/i18n/goal-messages';
 import { getMoneyMessages } from '@/src/i18n/money-messages';
-import {getStoryMessages} from '@/src/i18n/story-messages';
-import {ParentMomentsPanel} from '@/src/ui/moments/ParentMomentsPanel';
+import { getStoryMessages } from '@/src/i18n/story-messages';
+import { ParentMomentsPanel } from '@/src/ui/moments/ParentMomentsPanel';
 import { MoneyPanel } from '@/src/ui/money/MoneyPanel';
 import { GoalsPanel } from '@/src/ui/goals/GoalsPanel';
 import { getIdentityMessages } from '@/src/i18n/identity-messages';
@@ -145,14 +145,27 @@ export default async function ParentShellPage({ params }: { params: Promise<{ lo
     })),
   );
 
-  const allMoments=await runtime.moments.listGuardian(actor);
-  const momentAudits=Object.fromEntries(await Promise.all(allMoments.map(async moment=>[
-    moment.id,(await runtime.moments.guardianHistory(actor,moment.id)).revisions.map(r=>({
-      version:r.version,action:r.action,editedAt:r.editedAt.toISOString(),reason:r.reason,
-      before:r.before?{title:r.before.title,description:r.before.description}:null,
-      after:{title:r.after.title,description:r.after.description},
-    })),
-  ] as const)));
+  const allMoments = await runtime.moments.listGuardian(actor);
+  const momentAudits = Object.fromEntries(
+    await Promise.all(
+      allMoments.map(
+        async (moment) =>
+          [
+            moment.id,
+            (await runtime.moments.guardianHistory(actor, moment.id)).revisions.map((r) => ({
+              version: r.version,
+              action: r.action,
+              editedAt: r.editedAt.toISOString(),
+              reason: r.reason,
+              before: r.before
+                ? { title: r.before.title, description: r.before.description }
+                : null,
+              after: { title: r.after.title, description: r.after.description },
+            })),
+          ] as const,
+      ),
+    ),
+  );
 
   return (
     <main className="lo-app-foundation">
@@ -191,13 +204,20 @@ export default async function ParentShellPage({ params }: { params: Promise<{ lo
       <ParentGrowthPanel childProfiles={growthChildren} messages={activityMessages} />
       <MoneyPanel mode="GUARDIAN" profiles={moneyChildren} messages={getMoneyMessages(locale)} />
       <ParentMomentsPanel
-        items={allMoments.map(m=>({
-          id:m.id,title:m.title,description:m.description,privacy:m.privacy,
-          subjectChildId:m.subjectChildId,tags:m.tags,occurredAt:m.occurredAt.toISOString(),
-          status:m.status,version:m.version,
+        items={allMoments.map((m) => ({
+          id: m.id,
+          title: m.title,
+          description: m.description,
+          privacy: m.privacy,
+          subjectChildId: m.subjectChildId,
+          tags: m.tags,
+          occurredAt: m.occurredAt.toISOString(),
+          status: m.status,
+          version: m.version,
         }))}
-        childrenList={childProfiles.map(c=>({id:c.id,displayName:c.displayName}))}
-        audit={momentAudits} messages={getStoryMessages(locale)}
+        childrenList={childProfiles.map((c) => ({ id: c.id, displayName: c.displayName }))}
+        audit={momentAudits}
+        messages={getStoryMessages(locale)}
       />
       <GoalsPanel
         mode="GUARDIAN"

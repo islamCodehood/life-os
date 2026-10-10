@@ -7,9 +7,9 @@ import { e5CommandSchema } from '@/src/application/graduation/e5-command-schema'
 import { e6CommandSchema } from '@/src/application/growth/e6-command-schema';
 import { e7CommandSchema } from '@/src/application/goals/e7-command-schema';
 import { e8CommandSchema } from '@/src/application/money/e8-command-schema';
-import {e9CommandSchema} from '@/src/application/moments/e9-command-schema';
-import {MomentService} from '@/src/application/moments/moment-service';
-import {PostgresMomentRepository} from '@/src/infrastructure/moments/postgres-moment-repository';
+import { e9CommandSchema } from '@/src/application/moments/e9-command-schema';
+import { MomentService } from '@/src/application/moments/moment-service';
+import { PostgresMomentRepository } from '@/src/infrastructure/moments/postgres-moment-repository';
 import { MoneyService } from '@/src/application/money/money-service';
 import { JobService } from '@/src/application/jobs/job-service';
 import { PostgresMoneyRepository } from '@/src/infrastructure/money/postgres-money-repository';
@@ -107,7 +107,9 @@ export async function POST(request: Request) {
         const money = new MoneyService(new PostgresMoneyRepository(db), identityRepository);
         const jobs = new JobService(new PostgresJobRepository(db), identityRepository, money);
         const moments = new MomentService(
-          new PostgresMomentRepository(db),identityRepository,activityRepository,
+          new PostgresMomentRepository(db),
+          identityRepository,
+          activityRepository,
         );
         const graduations = new GraduationService(
           new PostgresGraduationRepository(db),
@@ -512,39 +514,58 @@ export async function POST(request: Request) {
             break;
           }
           case 'RecordMoment': {
-            const saved=await moments.record(actor,{
-              subjectChildId:command.payload.subjectChildId,privacy:command.payload.privacy,
-              title:command.payload.title,description:command.payload.description,tags:command.payload.tags,
-              momentOccurredAt:new Date(command.payload.momentOccurredAt),
-              occurredAt:new Date(command.occurredAt),now:serverNow,
+            const saved = await moments.record(actor, {
+              subjectChildId: command.payload.subjectChildId,
+              privacy: command.payload.privacy,
+              title: command.payload.title,
+              description: command.payload.description,
+              tags: command.payload.tags,
+              momentOccurredAt: new Date(command.payload.momentOccurredAt),
+              occurredAt: new Date(command.occurredAt),
+              now: serverNow,
             });
-            data=saved;
-            resourceVersions=[{resourceType:'Moment',resourceId:saved.momentId,version:saved.version}];
+            data = saved;
+            resourceVersions = [
+              { resourceType: 'Moment', resourceId: saved.momentId, version: saved.version },
+            ];
             break;
           }
           case 'UpdateMoment': {
-            const saved=await moments.update(actor,{
-              momentId:command.payload.momentId,
-              subjectChildId:command.payload.subjectChildId,privacy:command.payload.privacy,
-              title:command.payload.title,description:command.payload.description,tags:command.payload.tags,
-              momentOccurredAt:new Date(command.payload.momentOccurredAt),reason:command.payload.reason,
-              expectedVersion:command.expectedVersions?.find(v=>
-                v.resourceType==='Moment'&&v.resourceId===command.payload.momentId)?.version,
-              occurredAt:new Date(command.occurredAt),now:serverNow,
+            const saved = await moments.update(actor, {
+              momentId: command.payload.momentId,
+              subjectChildId: command.payload.subjectChildId,
+              privacy: command.payload.privacy,
+              title: command.payload.title,
+              description: command.payload.description,
+              tags: command.payload.tags,
+              momentOccurredAt: new Date(command.payload.momentOccurredAt),
+              reason: command.payload.reason,
+              expectedVersion: command.expectedVersions?.find(
+                (v) => v.resourceType === 'Moment' && v.resourceId === command.payload.momentId,
+              )?.version,
+              occurredAt: new Date(command.occurredAt),
+              now: serverNow,
             });
-            data=saved;
-            resourceVersions=[{resourceType:'Moment',resourceId:saved.momentId,version:saved.version}];
+            data = saved;
+            resourceVersions = [
+              { resourceType: 'Moment', resourceId: saved.momentId, version: saved.version },
+            ];
             break;
           }
           case 'ArchiveMoment': {
-            const saved=await moments.archive(actor,{
-              momentId:command.payload.momentId,reason:command.payload.reason,
-              expectedVersion:command.expectedVersions?.find(v=>
-                v.resourceType==='Moment'&&v.resourceId===command.payload.momentId)?.version,
-              occurredAt:new Date(command.occurredAt),now:serverNow,
+            const saved = await moments.archive(actor, {
+              momentId: command.payload.momentId,
+              reason: command.payload.reason,
+              expectedVersion: command.expectedVersions?.find(
+                (v) => v.resourceType === 'Moment' && v.resourceId === command.payload.momentId,
+              )?.version,
+              occurredAt: new Date(command.occurredAt),
+              now: serverNow,
             });
-            data=saved;
-            resourceVersions=[{resourceType:'Moment',resourceId:saved.momentId,version:saved.version}];
+            data = saved;
+            resourceVersions = [
+              { resourceType: 'Moment', resourceId: saved.momentId, version: saved.version },
+            ];
             break;
           }
           case 'RequestGraduationReview': {

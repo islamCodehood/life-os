@@ -45,7 +45,9 @@ export async function createActivityRuntime() {
     money,
   );
   const moments = new MomentService(
-    new PostgresMomentRepository(getDatabase().db),identity.repository,repository,
+    new PostgresMomentRepository(getDatabase().db),
+    identity.repository,
+    repository,
   );
 
   return {
