@@ -451,7 +451,7 @@ export function MoneyPanel({
             .map((tx) => (
               <li key={tx.id}>
                 <strong>{tx.kind}</strong> — {tx.note} ·{' '}
-                {tx.postings.map((p) => p.bucket + ' ' + p.amountMinor).join(', ')}
+                {tx.postings.map((p) => p.bucket + ' ' + displayMoney(p.amountMinor, currency)).join(', ')}
                 {guardian && tx.kind !== 'CORRECTION' && !corrected.has(tx.id) && (
                   <form
                     onSubmit={(event) =>
