@@ -25,7 +25,13 @@ export class WorldService{
   const matching=facts.filter(f=>f.scope===scope&&(scope==='FAMILY'||f.childId===childId));
   // Read-through backfill from canonical domain truth; first projection is idempotently persisted.
   // Inactive/archived or corrected source facts are excluded before materialization and rendering.
-  if(matching.length)await this.repo.ensureUnlocks(matching);
+  const firstPerMilestone=new Map<string,WorldFact>();
+  for(const candidate of [...matching].sort((a,b)=>
+     a.occurredAt.getTime()-b.occurredAt.getTime()||a.sourceEventId.localeCompare(b.sourceEventId))){
+    const key=candidate.scope+':'+candidate.childId+':'+candidate.milestoneKey;
+    if(!firstPerMilestone.has(key))firstPerMilestone.set(key,candidate);
+  }
+  if(firstPerMilestone.size)await this.repo.ensureUnlocks([...firstPerMilestone.values()]);
   const persisted=await this.repo.listPersisted(actor.familyId,scope,childId);
   const confirmed=new Set(persisted.map(p=>p.sourceEventId+':'+p.milestoneKey));
   const active=matching.filter(f=>confirmed.has(f.sourceEventId+':'+f.milestoneKey));
