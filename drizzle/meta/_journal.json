@@ -85,6 +85,13 @@
       "when": 1791658000000,
       "tag": "0011_jobs_money",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1791698400000,
+      "tag": "0013_moments",
+      "breakpoints": true
     }
   ]
 }
