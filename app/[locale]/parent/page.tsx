@@ -4,8 +4,8 @@ import { currentDateInTimezone } from '@/src/application/identity/current-date';
 import { getActivityMessages } from '@/src/i18n/activity-messages';
 import { getGoalMessages } from '@/src/i18n/goal-messages';
 import { getMoneyMessages } from '@/src/i18n/money-messages';
-import {getWorldMessages} from '@/src/i18n/world-messages';
-import {IslandWorld} from '@/src/ui/visual-world/IslandWorld';
+import { getWorldMessages } from '@/src/i18n/world-messages';
+import { IslandWorld } from '@/src/ui/visual-world/IslandWorld';
 import { getStoryMessages } from '@/src/i18n/story-messages';
 import { ParentMomentsPanel } from '@/src/ui/moments/ParentMomentsPanel';
 import { MoneyPanel } from '@/src/ui/money/MoneyPanel';
@@ -169,7 +169,7 @@ export default async function ParentShellPage({ params }: { params: Promise<{ lo
     ),
   );
 
-  const familyWorld=await runtime.world.read(actor,'FAMILY',null);
+  const familyWorld = await runtime.world.read(actor, 'FAMILY', null);
 
   return (
     <main className="lo-app-foundation">
@@ -191,8 +191,13 @@ export default async function ParentShellPage({ params }: { params: Promise<{ lo
         </form>
       </Card>
 
-      <IslandWorld state={familyWorld} messages={getWorldMessages(locale)}
-        visualization="BALANCED" motion="REDUCED" themeKey="island"/>
+      <IslandWorld
+        state={familyWorld}
+        messages={getWorldMessages(locale)}
+        visualization="BALANCED"
+        motion="REDUCED"
+        themeKey="island"
+      />
       <ParentIdentitySetup
         childProfiles={childProfiles.map((child) => ({
           id: child.id,

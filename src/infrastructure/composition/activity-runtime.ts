@@ -1,6 +1,6 @@
 import { ActivityService } from '@/src/application/activity/activity-service';
-import {WorldService} from '@/src/application/visual-world/world-service';
-import {PostgresWorldRepository} from '@/src/infrastructure/visual-world/postgres-world-repository';
+import { WorldService } from '@/src/application/visual-world/world-service';
+import { PostgresWorldRepository } from '@/src/infrastructure/visual-world/postgres-world-repository';
 import { MomentService } from '@/src/application/moments/moment-service';
 import { PostgresMomentRepository } from '@/src/infrastructure/moments/postgres-moment-repository';
 import { MoneyService } from '@/src/application/money/money-service';
@@ -52,7 +52,10 @@ export async function createActivityRuntime() {
     repository,
   );
 
-  const world = new WorldService(new PostgresWorldRepository(getDatabase().db), identity.repository);
+  const world = new WorldService(
+    new PostgresWorldRepository(getDatabase().db),
+    identity.repository,
+  );
   return {
     ...identity,
     activityRepository: repository,
