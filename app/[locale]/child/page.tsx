@@ -2,6 +2,8 @@ import { notFound, redirect } from 'next/navigation';
 import { getActivityMessages } from '@/src/i18n/activity-messages';
 import { getGoalMessages } from '@/src/i18n/goal-messages';
 import { getMoneyMessages } from '@/src/i18n/money-messages';
+import {getWorldMessages} from '@/src/i18n/world-messages';
+import {IslandWorld} from '@/src/ui/visual-world/IslandWorld';
 import { getStoryMessages } from '@/src/i18n/story-messages';
 import { StoryTimeline } from '@/src/ui/moments/StoryTimeline';
 import { currentDateInTimezone } from '@/src/application/identity/current-date';
@@ -57,6 +59,13 @@ export default async function ChildShellPage({ params }: { params: Promise<{ loc
       ).find((profile) => profile.id === actor.childId)?.experience.visualization
     : undefined;
   const story = await runtime.moments.story(actor, actor.childId, new Date(), storyPref);
+  const [personalWorld,familyWorld]=await Promise.all([
+    runtime.world.read(actor,'PERSONAL',actor.childId),
+    runtime.world.read(actor,'FAMILY',null),
+  ]);
+  const childExperience=family?(await runtime.repository.listChildSummaries(
+    actor.familyId,currentDateInTimezone(family.timezone),
+  )).find(p=>p.id===actor.childId)?.experience:undefined;
   const actorScope = childOfflineActorScope({
     familyId: actor.familyId,
     childId: actor.childId,
@@ -73,6 +82,12 @@ export default async function ChildShellPage({ params }: { params: Promise<{ loc
         <p>{identityMessages.childScope}</p>
       </section>
 
+      <IslandWorld state={personalWorld} messages={getWorldMessages(locale)}
+        visualization={childExperience?.visualization??'BALANCED'} motion={childExperience?.motion??'REDUCED'}
+        themeKey={childExperience?.themeKey??'island'}/>
+      <IslandWorld state={familyWorld} messages={getWorldMessages(locale)}
+        visualization={childExperience?.visualization??'BALANCED'} motion={childExperience?.motion??'REDUCED'}
+        themeKey={childExperience?.themeKey??'island'}/>
       <ChildTodayResponsibilities
         items={today.sections.flatMap((section) => section.items)}
         messages={activityMessages}
