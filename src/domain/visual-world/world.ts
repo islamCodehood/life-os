@@ -1,4 +1,4 @@
-import type {MotionPreference,VisualizationProfile} from '../identity/experience';
+import type {MotionPreference} from '../identity/experience';
 export const worldScopes=['PERSONAL','FAMILY'] as const;
 export type WorldScope=typeof worldScopes[number];
 export const milestoneKeys=[
@@ -56,8 +56,4 @@ export function groupRecentImpacts(impacts:readonly SemanticImpactDto[],motion:M
   groups.set(impact.semanticKey,{semanticKey:impact.semanticKey,count:(prior?.count??0)+1});
  }
  return [...groups.values()].slice(0,motion==='REDUCED'?1:3);
-}
-export function visibleWorldRegions(level:VisualizationProfile):MilestoneKey[]{
- const all=[...milestoneKeys];
- return level==='FOCUSED'?all:all;
 }
