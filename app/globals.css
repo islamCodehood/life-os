@@ -148,3 +148,4 @@ body {
   outline: 3px solid var(--lo-focus-ring);
   outline-offset: 2px;
 }
+\n@import '../src/ui/visual-world/world.css';\n
