@@ -144,14 +144,24 @@ function Scene({ state, messages, motion, themeKey }: IslandWorldProps) {
           </g>
         ))}
       </g>
-      <g className={region('FAMILY_GARDEN')}>
+      <g className="lo-world__region lo-world__region--waiting">
         <path d="M412 347Q468 367 521 347L500 379H433Z" fill="#759c9a" />
         <path
           d="M462 292V346M466 297L507 327H466Z"
-          fill={active('FAMILY_GARDEN') ? '#f4e5bb' : '#b6ccc0'}
+          fill="#b6ccc0"
           stroke="#739d9b"
           strokeWidth="4"
         />
+      </g>
+      <g className={region('FAMILY_GARDEN')}>
+        <ellipse cx="545" cy="341" rx="33" ry="9" fill="#82ab8b" />
+        {[525, 545, 564].map((x) => (
+          <g key={x}>
+            <path d={'M' + x + ' 342v-15'} stroke="#6b9a7e" strokeWidth="3" />
+            <circle cx={x} cy="326" r="6"
+              fill={active('FAMILY_GARDEN') ? '#ebbd9d' : '#b3c9b6'} />
+          </g>
+        ))}
       </g>
       <g textAnchor="middle" fontSize="14" fontWeight="600" fill="#315f5b">
         {manifest.regions
