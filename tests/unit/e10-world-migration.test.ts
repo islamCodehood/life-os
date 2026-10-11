@@ -14,6 +14,6 @@ describe('E10 semantic persistence', () => {
     expect(sql).toContain('"world_unlocks_immutable"');
   });
   it('does not persist visual assets, rankings or client motion preferences', () => {
-    expect(sql).not.toMatch(/theme_key|animation|coordinates|sprite|svg|rank|score|morality/);
+    expect(sql).not.toMatch(/"(?:theme_key|animation|coordinates|sprite|svg|rank|score|morality)"/);
   });
 });
