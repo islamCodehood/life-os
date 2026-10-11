@@ -53,7 +53,7 @@ export const islandRegions: readonly SemanticIslandRegion[] = [
   },
   {
     region: 'HARBOR',
-    semanticKey: 'FAMILY_GARDEN',
+    semanticKey: null,
     cx: 484,
     cy: 348,
     labelKey: 'HARBOR',
@@ -75,7 +75,7 @@ export const milestoneRegions: Readonly<Record<MilestoneKey, WorldRegion>> = {
   OBSERVATORY_LIT: 'OBSERVATORY',
   GIVING_GARDEN: 'GARDEN',
   FAMILY_TREE: 'FAMILY_TREE',
-  FAMILY_GARDEN: 'HARBOR',
+  FAMILY_GARDEN: 'FAMILY_TREE',
 };
 export function islandManifest(themeKey: string) {
   // Theme is a presentation choice only. Unknown themes safely use the island manifest;
