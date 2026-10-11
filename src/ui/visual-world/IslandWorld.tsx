@@ -158,12 +158,7 @@ function Scene({ state, messages, motion, themeKey }: IslandWorldProps) {
         {[525, 545, 564].map((x) => (
           <g key={x}>
             <path d={'M' + x + ' 342v-15'} stroke="#6b9a7e" strokeWidth="3" />
-            <circle
-              cx={x}
-              cy="326"
-              r="6"
-              fill={active('FAMILY_GARDEN') ? '#ebbd9d' : '#b3c9b6'}
-            />
+            <circle cx={x} cy="326" r="6" fill={active('FAMILY_GARDEN') ? '#ebbd9d' : '#b3c9b6'} />
           </g>
         ))}
       </g>
