@@ -8,4 +8,5 @@ export * from './schema/jobs-money';
 export * from './schema/moments';
 export * from './schema/visual-world';
 export * from './schema/weekly-review';
+export * from './schema/notifications';
 export * from './schema/system';
