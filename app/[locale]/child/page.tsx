@@ -5,9 +5,9 @@ import { getMoneyMessages } from '@/src/i18n/money-messages';
 import { getWorldMessages } from '@/src/i18n/world-messages';
 import { IslandWorld } from '@/src/ui/visual-world/IslandWorld';
 import { getStoryMessages } from '@/src/i18n/story-messages';
-import {getReviewMessages} from '@/src/i18n/review-messages';
-import {reviewToDto} from '@/src/application/weekly-review/review-dto';
-import {WeeklyReviewPanel} from '@/src/ui/weekly-review/WeeklyReviewPanel';
+import { getReviewMessages } from '@/src/i18n/review-messages';
+import { reviewToDto } from '@/src/application/weekly-review/review-dto';
+import { WeeklyReviewPanel } from '@/src/ui/weekly-review/WeeklyReviewPanel';
 import { StoryTimeline } from '@/src/ui/moments/StoryTimeline';
 import { currentDateInTimezone } from '@/src/application/identity/current-date';
 import { MoneyPanel } from '@/src/ui/money/MoneyPanel';
@@ -74,7 +74,7 @@ export default async function ChildShellPage({ params }: { params: Promise<{ loc
         )
       ).find((p) => p.id === actor.childId)?.experience
     : undefined;
-  const reviewView=reviewToDto(await runtime.reviews.current(actor));
+  const reviewView = reviewToDto(await runtime.reviews.current(actor));
   const actorScope = childOfflineActorScope({
     familyId: actor.familyId,
     childId: actor.childId,
@@ -112,8 +112,12 @@ export default async function ChildShellPage({ params }: { params: Promise<{ loc
         actorScope={actorScope}
       />
       <ChildGraduatedResponsibilities items={graduated} messages={activityMessages} />
-      <WeeklyReviewPanel mode="CHILD" childId={actor.childId}
-        view={reviewView} messages={getReviewMessages(locale)}/>
+      <WeeklyReviewPanel
+        mode="CHILD"
+        childId={actor.childId}
+        view={reviewView}
+        messages={getReviewMessages(locale)}
+      />
       <StoryTimeline items={story.items} messages={getStoryMessages(locale)} locale={locale} />
       <ChildSkillProgress skills={skills} messages={activityMessages} />
       <MoneyPanel

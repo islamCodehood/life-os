@@ -7,9 +7,9 @@ import { getMoneyMessages } from '@/src/i18n/money-messages';
 import { getWorldMessages } from '@/src/i18n/world-messages';
 import { IslandWorld } from '@/src/ui/visual-world/IslandWorld';
 import { getStoryMessages } from '@/src/i18n/story-messages';
-import {getReviewMessages} from '@/src/i18n/review-messages';
-import {reviewToDto} from '@/src/application/weekly-review/review-dto';
-import {WeeklyReviewPanel} from '@/src/ui/weekly-review/WeeklyReviewPanel';
+import { getReviewMessages } from '@/src/i18n/review-messages';
+import { reviewToDto } from '@/src/application/weekly-review/review-dto';
+import { WeeklyReviewPanel } from '@/src/ui/weekly-review/WeeklyReviewPanel';
 import { ParentMomentsPanel } from '@/src/ui/moments/ParentMomentsPanel';
 import { MoneyPanel } from '@/src/ui/money/MoneyPanel';
 import { GoalsPanel } from '@/src/ui/goals/GoalsPanel';
@@ -173,7 +173,7 @@ export default async function ParentShellPage({ params }: { params: Promise<{ lo
   );
 
   const familyWorld = await runtime.world.read(actor, 'FAMILY', null);
-  const reviewView=reviewToDto(await runtime.reviews.current(actor));
+  const reviewView = reviewToDto(await runtime.reviews.current(actor));
 
   return (
     <main className="lo-app-foundation">
@@ -202,9 +202,12 @@ export default async function ParentShellPage({ params }: { params: Promise<{ lo
         motion="REDUCED"
         themeKey="island"
       />
-      <WeeklyReviewPanel mode="GUARDIAN" view={reviewView}
-        childrenNames={childProfiles.map(c=>({id:c.id,name:c.displayName}))}
-        messages={getReviewMessages(locale)}/>
+      <WeeklyReviewPanel
+        mode="GUARDIAN"
+        view={reviewView}
+        childrenNames={childProfiles.map((c) => ({ id: c.id, name: c.displayName }))}
+        messages={getReviewMessages(locale)}
+      />
       <ParentIdentitySetup
         childProfiles={childProfiles.map((child) => ({
           id: child.id,
