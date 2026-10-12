@@ -13,6 +13,7 @@ const family = id(),
   another = id(),
   child = id(),
   review = id(),
+  reviewOther = id(),
   entry = id(),
   intent = id(),
   outbox = id();
@@ -87,6 +88,12 @@ try {
  VALUES ($1,$2,'2026-10-02','2026-10-09','2026-10-09','Africa/Cairo','OPEN')`,
     [review, family],
   );
+  await client.query(
+    `INSERT INTO life_os.weekly_reviews
+ (id,family_id,week_start,week_end,review_on,timezone,status)
+ VALUES ($1,$2,'2026-10-02','2026-10-09','2026-10-09','Africa/Cairo','OPEN')`,
+    [reviewOther, another],
+  );
   // Actor-scoped DB FK rejects an entry falsely claiming this child belongs to another family.
   await client.query('SAVEPOINT tenant');
   await assert.rejects(
@@ -95,7 +102,7 @@ try {
         `INSERT INTO life_os.weekly_review_entries
  (id,family_id,review_id,author_key,author_kind,author_child_id,prompt,response_text)
  VALUES ($1,$2,$3,$4,'CHILD',$5,'PROUD','I helped')`,
-        [entry, another, review, 'CHILD:' + child, child],
+        [entry, another, reviewOther, 'CHILD:' + child, child],
       ),
     /foreign key/i,
   );
@@ -139,13 +146,17 @@ try {
     [intent],
   );
   assert.equal(outboxCount.rows[0].count, 1);
+  // Commit the fixture first: the second connection must SEE a job before testing a row lock.
+  await client.query('COMMIT');
   const conn2 = new pg.Client({ connectionString: url });
   await conn2.connect();
   try {
     // A second worker must skip the locked job instead of sending it twice.
-    await client.query('SAVEPOINT worker');
+    await client.query('BEGIN');
     await client.query(`SELECT id FROM life_os.outbox_messages WHERE id=$1 FOR UPDATE`, [outbox]);
     await conn2.query('BEGIN');
+    const visible=await conn2.query('SELECT id FROM life_os.outbox_messages WHERE id=$1',[outbox]);
+    assert.equal(visible.rows.length,1);
     const skipped = await conn2.query(
       `SELECT id FROM life_os.outbox_messages
    WHERE id=$1 FOR UPDATE SKIP LOCKED`,
@@ -157,6 +168,7 @@ try {
     await conn2.end();
   }
   await client.query('ROLLBACK');
+  await client.query('DELETE FROM life_os.families WHERE id=$1 OR id=$2',[family,another]);
   process.stdout.write(
     'E13 disposable Postgres migration / family isolation / queue-lock smoke passed\n',
   );
