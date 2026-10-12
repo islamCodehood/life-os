@@ -9,6 +9,7 @@ import { createRequestId } from '@/src/infrastructure/http/request-id';
 const subscription = z
   .object({
     endpoint: z.string().url().max(2048),
+    locale: z.enum(['en', 'ar']),
     keys: z
       .object({ p256dh: z.string().min(12).max(300), auth: z.string().min(8).max(300) })
       .strict(),
