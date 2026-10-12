@@ -36,6 +36,7 @@ export const pushSubscriptions = lifeOsSchema.table(
     endpoint: text('endpoint').notNull(),
     p256dh: text('p256dh').notNull(),
     authSecret: text('auth_secret').notNull(),
+    locale: text('locale').notNull().default('en'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
