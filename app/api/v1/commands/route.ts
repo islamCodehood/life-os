@@ -8,6 +8,9 @@ import { e6CommandSchema } from '@/src/application/growth/e6-command-schema';
 import { e7CommandSchema } from '@/src/application/goals/e7-command-schema';
 import { e8CommandSchema } from '@/src/application/money/e8-command-schema';
 import { e9CommandSchema } from '@/src/application/moments/e9-command-schema';
+import {e11CommandSchema} from '@/src/application/weekly-review/e11-command-schema';
+import {ReviewService} from '@/src/application/weekly-review/review-service';
+import {PostgresReviewRepository} from '@/src/infrastructure/weekly-review/postgres-review-repository';
 import { MomentService } from '@/src/application/moments/moment-service';
 import { PostgresMomentRepository } from '@/src/infrastructure/moments/postgres-moment-repository';
 import { MoneyService } from '@/src/application/money/money-service';
@@ -48,6 +51,7 @@ const commandSchema = z.union([
   e7CommandSchema,
   e8CommandSchema,
   e9CommandSchema,
+  e11CommandSchema,
 ]);
 
 type CommandResponse = {
@@ -111,6 +115,7 @@ export async function POST(request: Request) {
           identityRepository,
           activityRepository,
         );
+        const reviews = new ReviewService(new PostgresReviewRepository(db),identityRepository);
         const graduations = new GraduationService(
           new PostgresGraduationRepository(db),
           activityRepository,
@@ -511,6 +516,30 @@ export async function POST(request: Request) {
                   v.resourceType === 'SavingGoal' && v.resourceId === command.payload.savingGoalId,
               )?.version,
             );
+            break;
+          }
+          case 'StartWeeklyReview': {
+            const review=await reviews.start(actor,serverNow);
+            data={reviewId:review.id,status:review.status,weekStart:review.weekStart};
+            resourceVersions=[{resourceType:'WeeklyReview',resourceId:review.id,version:review.version}];
+            break;
+          }
+          case 'SaveWeeklyReviewEntry': {
+            data=await reviews.saveEntry(actor,{
+              ...command.payload,now:serverNow,
+            });
+            break;
+          }
+          case 'CompleteWeeklyReview': {
+            const result=await reviews.complete(actor,{...command.payload,now:serverNow});
+            data=result;
+            resourceVersions=[{resourceType:'WeeklyReview',resourceId:result.reviewId,version:result.version}];
+            break;
+          }
+          case 'SkipWeeklyReview': {
+            const result=await reviews.skip(actor,{...command.payload,now:serverNow});
+            data=result;
+            resourceVersions=[{resourceType:'WeeklyReview',resourceId:result.reviewId,version:result.version}];
             break;
           }
           case 'RecordMoment': {
