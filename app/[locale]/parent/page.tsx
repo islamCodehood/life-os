@@ -211,7 +211,7 @@ export default async function ParentShellPage({ params }: { params: Promise<{ lo
         childrenNames={childProfiles.map((c) => ({ id: c.id, name: c.displayName }))}
         messages={getReviewMessages(locale)}
       />
-      <NotificationPanel
+      <NotificationPanel locale={locale}
         initial={notificationSettings}
         messages={getNotificationMessages(locale)}
       />
