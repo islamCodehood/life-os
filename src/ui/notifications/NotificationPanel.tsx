@@ -6,7 +6,7 @@ import type { NotificationMessages } from '@/src/i18n/notification-messages';
 type Props = {
   initial: { preference: NotificationPreference; subscriptions: number; configured: boolean };
   messages: NotificationMessages;
-  locale:'en'|'ar';
+  locale: 'en' | 'ar';
 };
 function decodeVapidKey(base64: string): Uint8Array<ArrayBuffer> {
   const pad = '='.repeat((4 - (base64.length % 4)) % 4);

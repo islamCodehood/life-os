@@ -116,7 +116,12 @@ export class Notifications {
     if (existing[0]) {
       await this.db
         .update(s.pushSubscriptions)
-        .set({ p256dh: data.keys.p256dh, authSecret: data.keys.auth, locale:data.locale, updatedAt: new Date() })
+        .set({
+          p256dh: data.keys.p256dh,
+          authSecret: data.keys.auth,
+          locale: data.locale,
+          updatedAt: new Date(),
+        })
         .where(eq(s.pushSubscriptions.id, existing[0].id));
     } else {
       await this.db.insert(s.pushSubscriptions).values({
@@ -125,7 +130,7 @@ export class Notifications {
         endpoint,
         p256dh: data.keys.p256dh,
         authSecret: data.keys.auth,
-        locale:data.locale,
+        locale: data.locale,
       });
     }
     return this.view(actor);
