@@ -18,9 +18,11 @@ CREATE TABLE "life_os"."push_subscriptions" (
  "endpoint" text NOT NULL,
  "p256dh" text NOT NULL,
  "auth_secret" text NOT NULL,
+ "locale" text NOT NULL DEFAULT 'en',
  "created_at" timestamptz NOT NULL DEFAULT now(),
  "updated_at" timestamptz NOT NULL DEFAULT now(),
  CONSTRAINT "push_subscriptions_endpoint_unique" UNIQUE ("endpoint"),
+ CONSTRAINT "push_subscriptions_locale" CHECK ("locale" IN ('en','ar')),
  CONSTRAINT "push_subscriptions_actor_pref_fk" FOREIGN KEY ("family_id","actor_key")
    REFERENCES "life_os"."notification_preferences"("family_id","actor_key") ON DELETE CASCADE
 );
