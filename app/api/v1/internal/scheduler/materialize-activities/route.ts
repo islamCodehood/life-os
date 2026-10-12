@@ -1,8 +1,8 @@
 import { timingSafeEqual } from 'node:crypto';
 import { NextResponse } from 'next/server';
 import { ActivityService } from '@/src/application/activity/activity-service';
-import {ReviewService} from '@/src/application/weekly-review/review-service';
-import {PostgresReviewRepository} from '@/src/infrastructure/weekly-review/postgres-review-repository';
+import { ReviewService } from '@/src/application/weekly-review/review-service';
+import { PostgresReviewRepository } from '@/src/infrastructure/weekly-review/postgres-review-repository';
 import { AuthorizationService } from '@/src/application/identity/authorization-service';
 import { PostgresActivityRepository } from '@/src/infrastructure/activity/postgres-activity-repository';
 import { getDatabase } from '@/src/infrastructure/database/client';
@@ -44,7 +44,8 @@ export async function POST(request: Request) {
     const result = await activities.materializeCurrentForAllFamilies();
     // The same authorized scheduler tick also creates this week's family conversation.
     const reviews = await new ReviewService(
-      new PostgresReviewRepository(db),identityRepository,
+      new PostgresReviewRepository(db),
+      identityRepository,
     ).scheduleAll();
     return NextResponse.json(
       { ok: true, ...result, weeklyReviews: reviews },
