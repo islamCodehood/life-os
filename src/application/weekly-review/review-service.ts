@@ -1,7 +1,8 @@
 import type { ActorContext } from '@/src/application/auth/actor-context';
 import type { IdentityRepository } from '@/src/application/identity/identity-repository';
 import { currentDateInTimezone } from '@/src/application/identity/current-date';
-import { newId, type FamilyId, type ChildId } from '@/src/domain/shared/id';
+import { newId } from '@/src/domain/shared/id';
+import {deriveAgeProfile} from '@/src/domain/identity/experience';
 import {
   reviewWindow,
   validateReflection,
@@ -106,10 +107,9 @@ export class ReviewService {
     for (const f of families) {
       const period = reviewWindow(currentDateInTimezone(f.timezone, now), f.weeklyReviewDay);
       if (!(await this.repo.forWeek(f.id, period.weekStart))) created++;
-      const before = await this.repo.forWeek(f.id, period.weekStart);
-      // Updates happen even when the review already exists; no child penalties.
+      abandoned += await this.repo.abandonOlder(f.id,period.weekStart,now);
+      // Unique family+week ensures a repeated scheduler tick does not reset the review.
       await this.startForFamily(f.id, f.timezone, f.weeklyReviewDay, now);
-      if (!before) abandoned += 0;
     }
     return { families: families.length, created, abandoned };
   }
@@ -226,7 +226,7 @@ export class ReviewService {
     const child =
       actor.kind === 'CHILD' ? await this.identity.getChild(actor.familyId, actor.childId) : null;
     const profile = child
-      ? (await import('@/src/domain/identity/experience')).deriveAgeProfile(
+      ? deriveAgeProfile(
           child.birthDate,
           currentDateInTimezone(family.timezone, now),
         )
