@@ -411,7 +411,7 @@ export class Notifications {
           await sendPush({
             subscription: { endpoint: sub.endpoint, p256dh: sub.p256dh, auth: sub.authSecret },
             kind: intent.kind as NotificationKind,
-            targetPath: intent.targetPath,
+            targetPath: safeTarget(sub.locale as 'en'|'ar', intent.actorKey.startsWith('CHILD:')?'CHILD':'GUARDIAN'),
           });
         } catch (error) {
           // Do not log push endpoint, subscription keys or child data.
