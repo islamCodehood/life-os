@@ -6,7 +6,7 @@ import { GoalDomainError } from '@/src/application/goals/goal-service';
 import { MomentDomainError } from '@/src/application/moments/moment-service';
 import { WorldAccessError } from '@/src/application/visual-world/world-service';
 import { ReviewDomainError } from '@/src/application/weekly-review/review-service';
-import {NotificationError} from '@/src/infrastructure/notifications/notifications';
+import { NotificationError } from '@/src/infrastructure/notifications/notifications';
 import { MoneyDomainError } from '@/src/application/money/money-service';
 import { JobDomainError } from '@/src/application/jobs/job-service';
 import { GuardianAuthenticationError } from '@/src/application/auth/guardian-auth-gateway';
