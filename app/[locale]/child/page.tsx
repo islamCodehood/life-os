@@ -108,7 +108,7 @@ export default async function ChildShellPage({ params }: { params: Promise<{ loc
         motion={childExperience?.motion ?? 'REDUCED'}
         themeKey={childExperience?.themeKey ?? 'island'}
       />
-      <NotificationPanel
+      <NotificationPanel locale={locale}
         initial={notificationSettings}
         messages={getNotificationMessages(locale)}
       />
