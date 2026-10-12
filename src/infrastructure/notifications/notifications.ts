@@ -119,15 +119,13 @@ export class Notifications {
         .set({ p256dh: data.keys.p256dh, authSecret: data.keys.auth, updatedAt: new Date() })
         .where(eq(s.pushSubscriptions.id, existing[0].id));
     } else {
-      await this.db
-        .insert(s.pushSubscriptions)
-        .values({
-          id: newId<'PushSubscriptionId'>(),
-          ...x,
-          endpoint,
-          p256dh: data.keys.p256dh,
-          authSecret: data.keys.auth,
-        });
+      await this.db.insert(s.pushSubscriptions).values({
+        id: newId<'PushSubscriptionId'>(),
+        ...x,
+        endpoint,
+        p256dh: data.keys.p256dh,
+        authSecret: data.keys.auth,
+      });
     }
     return this.view(actor);
   }
