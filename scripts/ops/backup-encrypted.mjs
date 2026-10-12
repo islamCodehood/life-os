@@ -25,6 +25,7 @@ function status(child){
 const dump=command('pg_dump',['--format=custom','--no-owner','--no-privileges'],{PGDATABASE:url});
 const encrypted=command('age',['-r',recipient]);
 dump.stdout.pipe(encrypted.stdin);
+try{
 await Promise.all([
  pipeline(encrypted.stdout,createWriteStream(file,{flags:'wx',mode:0o600})),
  status(dump),status(encrypted),
