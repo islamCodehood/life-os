@@ -6,6 +6,7 @@ import type { NotificationMessages } from '@/src/i18n/notification-messages';
 type Props = {
   initial: { preference: NotificationPreference; subscriptions: number; configured: boolean };
   messages: NotificationMessages;
+  locale:'en'|'ar';
 };
 function decodeVapidKey(base64: string): Uint8Array<ArrayBuffer> {
   const pad = '='.repeat((4 - (base64.length % 4)) % 4);
@@ -14,7 +15,7 @@ function decodeVapidKey(base64: string): Uint8Array<ArrayBuffer> {
   for (let i = 0; i < value.length; i++) array[i] = value.charCodeAt(i);
   return array;
 }
-export function NotificationPanel({ initial, messages }: Props) {
+export function NotificationPanel({ initial, messages, locale }: Props) {
   const [value, setValue] = useState(initial.preference),
     [devices, setDevices] = useState(initial.subscriptions);
   const [busy, setBusy] = useState(false),
@@ -56,6 +57,7 @@ export function NotificationPanel({ initial, messages }: Props) {
         const snapshot = subscription.toJSON();
         await request('POST', '/api/v1/notifications/subscription', {
           endpoint: subscription.endpoint,
+          locale,
           keys: snapshot.keys,
         });
       } else if ('serviceWorker' in navigator) {
