@@ -6,6 +6,8 @@ import { getWorldMessages } from '@/src/i18n/world-messages';
 import { IslandWorld } from '@/src/ui/visual-world/IslandWorld';
 import { getStoryMessages } from '@/src/i18n/story-messages';
 import { getReviewMessages } from '@/src/i18n/review-messages';
+import {getNotificationMessages} from '@/src/i18n/notification-messages';
+import {NotificationPanel} from '@/src/ui/notifications/NotificationPanel';
 import { reviewToDto } from '@/src/application/weekly-review/review-dto';
 import { WeeklyReviewPanel } from '@/src/ui/weekly-review/WeeklyReviewPanel';
 import { StoryTimeline } from '@/src/ui/moments/StoryTimeline';
@@ -75,6 +77,7 @@ export default async function ChildShellPage({ params }: { params: Promise<{ loc
       ).find((p) => p.id === actor.childId)?.experience
     : undefined;
   const reviewView = reviewToDto(await runtime.reviews.current(actor));
+  const notificationSettings=await runtime.notifications.view(actor);
   const actorScope = childOfflineActorScope({
     familyId: actor.familyId,
     childId: actor.childId,
@@ -105,6 +108,7 @@ export default async function ChildShellPage({ params }: { params: Promise<{ loc
         motion={childExperience?.motion ?? 'REDUCED'}
         themeKey={childExperience?.themeKey ?? 'island'}
       />
+      <NotificationPanel initial={notificationSettings} messages={getNotificationMessages(locale)}/>
       <ChildTodayResponsibilities
         items={today.sections.flatMap((section) => section.items)}
         messages={activityMessages}
