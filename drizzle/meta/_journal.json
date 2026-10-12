@@ -99,6 +99,13 @@
       "when": 1791752400000,
       "tag": "0016_visual_world",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1791842400000,
+      "tag": "0017_weekly_reviews",
+      "breakpoints": true
     }
   ]
 }
