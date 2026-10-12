@@ -168,7 +168,7 @@ try {
     await conn2.end();
   }
   await client.query('ROLLBACK');
-  await client.query('DELETE FROM life_os.families WHERE id=$1 OR id=$2',[family,another]);
+  // The disposable postgres container is destroyed by CI; no destructive cleanup is needed.
   process.stdout.write(
     'E13 disposable Postgres migration / family isolation / queue-lock smoke passed\n',
   );
