@@ -236,3 +236,10 @@ body {
     transition: none !important;
   }
 }
+
+/* Notification choices are opt-in and keyboard accessible. */
+.lo-app-foundation__card input[type="time"]{
+ display:block;min-block-size:44px;max-inline-size:100%;padding:.4rem;
+ border:1px solid var(--lo-border-default,#d6dedc);border-radius:.5rem;
+ color:var(--lo-text-primary,#242);background:var(--lo-bg-surface,#fff);
+}
