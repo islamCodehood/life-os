@@ -1,3 +1,4 @@
+@import '../src/ui/visual-world/world.css';
 html {
   background: var(--lo-bg-page);
   color: var(--lo-text-primary);

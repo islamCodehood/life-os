@@ -1,0 +1,124 @@
+.lo-world {
+  overflow: hidden;
+}
+.lo-world__heading h2 {
+  font-size: 1.35rem;
+  letter-spacing: -0.02em;
+}
+.lo-world__heading p {
+  max-width: 54ch;
+  opacity: 0.76;
+}
+.lo-world__art {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 450px;
+  border-radius: 1rem;
+}
+.lo-world__stage {
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+.lo-world__regions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 0.6rem;
+  padding: 0;
+  list-style: none;
+}
+.lo-world__regions li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+  border: 1px solid color-mix(in srgb, currentColor 14%, transparent);
+  padding: 0.65rem;
+  border-radius: 0.75rem;
+}
+.lo-world__unlocked {
+  background: color-mix(in srgb, #9bc7a3 20%, transparent);
+}
+.lo-world__waiting {
+  opacity: 0.7;
+}
+.lo-world__region-status {
+  font-size: 0.73rem;
+  flex-basis: 100%;
+  margin-inline-start: 1.2rem;
+}
+.lo-world__note {
+  font-size: 0.82rem;
+  opacity: 0.8;
+}
+.lo-world__layout--immersive .lo-world__art {
+  max-height: 490px;
+}
+.lo-world__layout--balanced {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(240px, 1fr);
+  column-gap: 1rem;
+}
+.lo-world__layout--balanced .lo-world__heading {
+  grid-column: 1/-1;
+}
+.lo-world__layout--balanced .lo-world__regions {
+  grid-template-columns: 1fr;
+}
+.lo-world__layout--focused .lo-world__regions {
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+}
+.lo-world__region--waiting {
+  opacity: 0.74;
+}
+.lo-world__region--grown {
+  opacity: 1;
+}
+.lo-world__layout[data-motion='FULL'] .lo-world__region--recent {
+  animation: lo-world-celebrate 0.9s ease-out 1;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.lo-world__layout[data-motion='REDUCED'] .lo-world__region--recent {
+  animation: lo-world-fade 0.25s ease-out 1;
+}
+.lo-world__layout[data-motion='OFF'] *,
+.lo-world__layout[data-motion='OFF'] *::before {
+  animation: none !important;
+  transition: none !important;
+}
+@keyframes lo-world-celebrate {
+  0% {
+    transform: scale(0.92);
+    opacity: 0.65;
+  }
+  60% {
+    transform: scale(1.06);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+@keyframes lo-world-fade {
+  from {
+    opacity: 0.75;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@media (max-width: 730px) {
+  .lo-world__layout--balanced {
+    display: block;
+  }
+  .lo-world__regions {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lo-world__layout .lo-world__region--recent {
+    animation: none !important;
+    transition: none !important;
+  }
+}
