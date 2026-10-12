@@ -34,12 +34,18 @@ export async function sendPush(input: {
   if (!env.VAPID_PRIVATE_KEY || !env.VAPID_SUBJECT || !publicKey)
     throw new Error('Web Push VAPID configuration is incomplete.');
   webpush.setVapidDetails(env.VAPID_SUBJECT, publicKey, env.VAPID_PRIVATE_KEY);
-  const arabic=input.targetPath.startsWith('/ar/');
-  const title=arabic
-    ?input.kind==='ACTIVITY_REMINDER'?'تذكير لطيف من لايف أو إس':
-      input.kind==='GRADUATED_MONITORING'?'متابعة أسرية':'مراجعة أسرية متاحة'
-    :input.kind==='ACTIVITY_REMINDER'?'A gentle Life OS reminder':
-      input.kind==='GRADUATED_MONITORING'?'A family check-in':'Family review available';
+  const arabic = input.targetPath.startsWith('/ar/');
+  const title = arabic
+    ? input.kind === 'ACTIVITY_REMINDER'
+      ? 'تذكير لطيف من لايف أو إس'
+      : input.kind === 'GRADUATED_MONITORING'
+        ? 'متابعة أسرية'
+        : 'مراجعة أسرية متاحة'
+    : input.kind === 'ACTIVITY_REMINDER'
+      ? 'A gentle Life OS reminder'
+      : input.kind === 'GRADUATED_MONITORING'
+        ? 'A family check-in'
+        : 'Family review available';
   await webpush.sendNotification(
     {
       endpoint: assertPushEndpoint(input.subscription.endpoint),
@@ -47,7 +53,9 @@ export async function sendPush(input: {
     },
     JSON.stringify({
       title,
-      body:arabic?'افتح التطبيق في الوقت المناسب لأسرتك.':'Open Life OS when it suits your family.',
+      body: arabic
+        ? 'افتح التطبيق في الوقت المناسب لأسرتك.'
+        : 'Open Life OS when it suits your family.',
       path: input.targetPath,
     }),
     { TTL: 900, urgency: 'normal' },
