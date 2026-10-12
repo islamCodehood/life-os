@@ -123,6 +123,7 @@ export class ReviewService {
       now?: Date;
     },
   ) {
+    requireFamilyActor(actor);
     const family = await this.family(actor);
     if (actor.kind === 'CHILD' && !(await this.identity.getChild(actor.familyId, actor.childId)))
       throw new ReviewDomainError('RESOURCE_NOT_FOUND', 'Child not found.');
