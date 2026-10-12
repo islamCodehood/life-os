@@ -7,4 +7,5 @@ export * from './schema/goals';
 export * from './schema/jobs-money';
 export * from './schema/moments';
 export * from './schema/visual-world';
+export * from './schema/weekly-review';
 export * from './schema/system';
