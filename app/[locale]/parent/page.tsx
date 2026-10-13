@@ -216,6 +216,11 @@ export default async function ParentShellPage({ params }: { params: Promise<{ lo
         initial={notificationSettings}
         messages={getNotificationMessages(locale)}
       />
+      <section aria-label="Private family data export">
+        <a href="/api/v1/family/export" download>
+          {locale === 'ar' ? 'تصدير بيانات الأسرة الخاصة' : 'Export private family data'}
+        </a>
+      </section>
       <ParentIdentitySetup
         childProfiles={childProfiles.map((child) => ({
           id: child.id,

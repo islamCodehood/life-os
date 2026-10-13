@@ -42,3 +42,36 @@ jobs:
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm build
       - run: pnpm test:e2e:smoke
+
+
+  database-migrations:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: lifeos_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d lifeos_ci"
+          --health-interval 5s --health-timeout 5s --health-retries 15
+    env:
+      DATABASE_URL_MIGRATION: postgresql://postgres:postgres@localhost:5432/lifeos_ci
+      DATABASE_URL_RUNTIME: postgresql://postgres:postgres@localhost:5432/lifeos_ci
+      LIFE_OS_DB_SMOKE_CONFIRM: DISPOSABLE_DATABASE
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.21.0
+      - run: corepack enable
+      - run: pnpm install --frozen-lockfile
+      - name: Apply all migrations to a disposable real PostgreSQL server
+        run: pnpm db:migrate
+      - name: Assert tenant isolation, closed-review protection and queue locking
+        run: node scripts/uat/db-smoke.mjs
+      - name: Verify migrations are repeatable
+        run: pnpm db:migrate
