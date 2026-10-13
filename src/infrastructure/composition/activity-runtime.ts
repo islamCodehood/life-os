@@ -1,4 +1,5 @@
 import { ActivityService } from '@/src/application/activity/activity-service';
+import { Notifications } from '@/src/infrastructure/notifications/notifications';
 import { ReviewService } from '@/src/application/weekly-review/review-service';
 import { PostgresReviewRepository } from '@/src/infrastructure/weekly-review/postgres-review-repository';
 import { WorldService } from '@/src/application/visual-world/world-service';
@@ -62,6 +63,7 @@ export async function createActivityRuntime() {
     new PostgresReviewRepository(getDatabase().db),
     identity.repository,
   );
+  const notifications = new Notifications(getDatabase().db);
   return {
     ...identity,
     activityRepository: repository,
@@ -71,6 +73,7 @@ export async function createActivityRuntime() {
     moments,
     world,
     reviews,
+    notifications,
     money,
     jobs,
   };

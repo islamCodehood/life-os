@@ -8,6 +8,8 @@ import { getWorldMessages } from '@/src/i18n/world-messages';
 import { IslandWorld } from '@/src/ui/visual-world/IslandWorld';
 import { getStoryMessages } from '@/src/i18n/story-messages';
 import { getReviewMessages } from '@/src/i18n/review-messages';
+import { getNotificationMessages } from '@/src/i18n/notification-messages';
+import { NotificationPanel } from '@/src/ui/notifications/NotificationPanel';
 import { reviewToDto } from '@/src/application/weekly-review/review-dto';
 import { WeeklyReviewPanel } from '@/src/ui/weekly-review/WeeklyReviewPanel';
 import { ParentMomentsPanel } from '@/src/ui/moments/ParentMomentsPanel';
@@ -174,6 +176,7 @@ export default async function ParentShellPage({ params }: { params: Promise<{ lo
 
   const familyWorld = await runtime.world.read(actor, 'FAMILY', null);
   const reviewView = reviewToDto(await runtime.reviews.current(actor));
+  const notificationSettings = await runtime.notifications.view(actor);
 
   return (
     <main className="lo-app-foundation">
@@ -207,6 +210,11 @@ export default async function ParentShellPage({ params }: { params: Promise<{ lo
         view={reviewView}
         childrenNames={childProfiles.map((c) => ({ id: c.id, name: c.displayName }))}
         messages={getReviewMessages(locale)}
+      />
+      <NotificationPanel
+        locale={locale}
+        initial={notificationSettings}
+        messages={getNotificationMessages(locale)}
       />
       <ParentIdentitySetup
         childProfiles={childProfiles.map((child) => ({

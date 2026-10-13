@@ -1,6 +1,7 @@
 import { timingSafeEqual } from 'node:crypto';
 import { NextResponse } from 'next/server';
 import { ActivityService } from '@/src/application/activity/activity-service';
+import { Notifications } from '@/src/infrastructure/notifications/notifications';
 import { ReviewService } from '@/src/application/weekly-review/review-service';
 import { PostgresReviewRepository } from '@/src/infrastructure/weekly-review/postgres-review-repository';
 import { AuthorizationService } from '@/src/application/identity/authorization-service';
@@ -33,24 +34,44 @@ export async function POST(request: Request) {
     }
 
     const db = getDatabase().db;
-    const identityRepository = new PostgresIdentityRepository(db);
-    const activityRepository = new PostgresActivityRepository(db);
-    const activities = new ActivityService(
-      activityRepository,
-      identityRepository,
-      new AuthorizationService(identityRepository),
-    );
+    const notifications = new Notifications(db);
+    const runId = await notifications.beginTick();
+    if (!runId)
+      return NextResponse.json(
+        { ok: true, alreadyRunning: true },
+        {
+          headers: {
+            'x-request-id': requestId,
+            'cache-control': 'no-store',
+          },
+        },
+      );
+    try {
+      const identityRepository = new PostgresIdentityRepository(db);
+      const activityRepository = new PostgresActivityRepository(db);
+      const activities = new ActivityService(
+        activityRepository,
+        identityRepository,
+        new AuthorizationService(identityRepository),
+      );
 
-    const result = await activities.materializeCurrentForAllFamilies();
-    // The same authorized scheduler tick also creates this week's family conversation.
-    const reviews = await new ReviewService(
-      new PostgresReviewRepository(db),
-      identityRepository,
-    ).scheduleAll();
-    return NextResponse.json(
-      { ok: true, ...result, weeklyReviews: reviews },
-      { headers: { 'x-request-id': requestId, 'cache-control': 'no-store' } },
-    );
+      const result = await activities.materializeCurrentForAllFamilies();
+      // The same authorized scheduler tick also creates this week's family conversation.
+      const reviews = await new ReviewService(
+        new PostgresReviewRepository(db),
+        identityRepository,
+      ).scheduleAll();
+      const notificationIntents = await notifications.schedule();
+      const outbox = await notifications.work();
+      await notifications.endTick(runId, true);
+      return NextResponse.json(
+        { ok: true, ...result, weeklyReviews: reviews, notificationIntents, outbox },
+        { headers: { 'x-request-id': requestId, 'cache-control': 'no-store' } },
+      );
+    } catch (error) {
+      await notifications.endTick(runId, false);
+      throw error;
+    }
   } catch (error) {
     return errorResponse(error, requestId);
   }

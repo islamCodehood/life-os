@@ -42,7 +42,8 @@
     "react-hook-form": "7.88.0",
     "zod": "4.6.5",
     "@node-rs/argon2": "2.2.1",
-    "uuid": "14.0.2"
+    "uuid": "14.0.2",
+    "web-push": "3.6.7"
   },
   "devDependencies": {
     "@playwright/test": "1.63.0",
@@ -55,7 +56,8 @@
     "eslint-config-next": "16.3.8",
     "prettier": "3.9.9",
     "typescript": "^5.9.3",
-    "vitest": "5.0.3"
+    "vitest": "5.0.3",
+    "@types/web-push": "^3.6.4"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
